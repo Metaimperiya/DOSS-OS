@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DOSS OS — Personal Operating System</title>
+<style>
+/* ========== THEME ========== */
+:root {
+    --bg: #f0f2f5;
+    --card: #ffffff;
+    --text: #1c1e21;
+    --muted: #65676b;
+    --border: #e4e6eb;
+    --input: #f0f2f5;
+    --hover: #f0f2f5;
+    --accent: #1877f2;
+    --danger: #e74c3c;
+    --success: #27ae60;
+    --warning: #f39c12;
+    --radius: 12px;
+    --radius-sm: 8px;
+}
+[data-theme="dark"] {
+    --bg: #18191a;
+    --card: #242526;
+    --text: #e4e6eb;
+    --muted: #b0b3b8;
+    --border: #3a3b3c;
+    --input: #3a3b3c;
+    --hover: #3a3b3c;
+    --accent: #2d88ff;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; transition: background 0.2s;
+}
+button, input, textarea, select {
+    font-family: inherit; font-size: inherit; color: inherit;
+}
+button { cursor: pointer; }
+
+/* ========== LAYOUT ========== */
+.app {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    grid-template-rows: 56px 1fr;
+    grid-template-areas: "top top" "side main";
+    min-height: 100vh;
+}
+.topbar {
+    grid-area: top;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 16px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+}
+.topbar-left, .topbar-right {
+    display: flex; align-items: center; gap: 12px;
+}
+.burger { display: none; cursor: pointer; font-size: 1.2rem; }
+.brand { font-weight: 700; font-size: 1rem; }
+.clock { font-size: 0.85rem; color: var(--muted); }
+.icon-btn {
+    background: none; border: none; font-size: 1.1rem;
+    padding: 4px 6px; border-radius: var(--radius-sm);
+}
+.icon-btn:hover { background: var(--hover); }
+
+/* ========== SIDEBAR ========== */
+.sidebar {
+    grid-area: side;
+    background: var(--card);
+    border-right: 1px solid var(--border);
+    padding: 12px 8px;
+    overflow-y: auto;
+}
+.nav { display: flex; flex-direction: column; gap: 2px; }
+.nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: var(--radius-sm);
+    color: var(--text); text-decoration: none;
+    font-size: 0.9rem; transition: 0.15s;
+    border: none; background: none; text-align: left; width: 100%;
+    cursor: pointer;
+}
+.nav-item:hover { background: var(--hover); }
+.nav-item.active { background: var(--accent); color: #fff; }
+
+/* ========== MAIN ========== */
+.main { grid-area: main; padding: 20px; overflow-x: hidden; }
+.view { display: none; }
+.view.active { display: block; }
+h1 { font-size: 1.5rem; margin-bottom: 16px; }
+
+/* ========== CARDS ========== */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px; margin-bottom: 16px;
+}
+.card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 16px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    margin-bottom: 12px;
+}
+.card-title {
+    font-size: 0.8rem; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+.card-value { font-size: 1.5rem; font-weight: 700; }
+
+/* ========== FORMS ========== */
+.row {
+    display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;
+}
+.input, .textarea, .select {
+    flex: 1; min-width: 0;
+    padding: 10px 12px;
+    background: var(--input); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text);
+    outline: none;
+}
+.input:focus, .textarea:focus { border-color: var(--accent); }
+.textarea { min-height: 80px; resize: vertical; }
+.btn {
+    padding: 10px 16px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: var(--card);
+    color: var(--text); font-weight: 600; font-size: 0.85rem;
+    transition: 0.15s;
+}
+.btn:hover { background: var(--hover); }
+.btn-primary {
+    background: var(--accent); color: #fff; border-color: var(--accent);
+}
+.btn-primary:hover { opacity: 0.9; }
+.btn-danger {
+    background: var(--danger); color: #fff; border-color: var(--danger);
+}
+.btn-sm { padding: 6px 10px; font-size: 0.75rem; }
+
+/* ========== LIST ITEMS ========== */
+.item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-bottom: 1px solid var(--border);
+}
+.item:last-child { border-bottom: none; }
+.item-main { flex: 1; min-width: 0; }
+.item-title { font-size: 0.9rem; }
+.item-sub { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+.item.done .item-title { text-decoration: line-through; color: var(--muted); }
+.check {
+    width: 20px; height: 20px; cursor: pointer;
+    accent-color: var(--accent);
+}
+.empty {
+    text-align: center; padding: 20px;
+    color: var(--muted); font-size: 0.85rem;
+}
+
+/* ========== CALCULATOR ========== */
+.calc-display {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px; margin-bottom: 12px;
+    text-align: right;
+}
+.calc-expr { font-size: 0.9rem; color: var(--muted); min-height: 1.2em; }
+.calc-result { font-size: 1.8rem; font-weight: 700; margin-top: 6px; }
+.calc-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+    max-width: 420px;
+}
+.calc-btn {
+    padding: 14px 0; font-size: 1rem;
+    border: 1px solid var(--border); background: var(--card);
+    color: var(--text); border-radius: var(--radius-sm);
+    cursor: pointer; transition: 0.15s;
+}
+.calc-btn:hover { background: var(--hover); }
+.calc-btn.op { color: var(--accent); font-weight: 600; }
+.calc-btn.eq { background: var(--accent); color: #fff; border-color: var(--accent); }
+.calc-btn.fn { color: var(--danger); }
+
+/* ========== MODAL ========== */
+.modal {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5); z-index: 1000;
+    align-items: center; justify-content: center; padding: 16px;
+}
+.modal.open { display: flex; }
+.modal-box {
+    background: var(--card); border-radius: var(--radius);
+    padding: 20px; max-width: 480px; width: 100%;
+    max-height: 90vh; overflow-y: auto;
+}
+.modal-box h3 { margin-bottom: 12px; }
+.modal-box .row { flex-direction: column; }
+.modal-box .input, .modal-box .textarea { width: 100%; }
+
+/* ========== MOBILE ========== */
+.overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5); z-index: 90;
+}
+.overlay.show { display: block; }
+@media (max-width: 768px) {
+    .app {
+        grid-template-columns: 1fr;
+        grid-template-areas: "top" "main";
+    }
+    .sidebar {
+        position: fixed; top: 56px; left: 0; bottom: 0;
+        width: 260px; transform: translateX(-100%);
+        transition: transform 0.25s; z-index: 95;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .burger { display: inline; }
+    .clock { display: none; }
+    .main { padding: 12px; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <span class="burger" onclick="toggleSidebar()">☰</span>
+            <span class="brand">🧠 DOSS OS</span>
+        </div>
+        <div class="topbar-right">
+            <span class="clock" id="clock"></span>
+            <button class="icon-btn" onclick="toggleTheme()" title="Тема">🌓</button>
+            <button class="icon-btn" onclick="openSettingsModal()" title="Настройки">⚙️</button>
+        </div>
+    </header>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <nav class="nav">
+            <button class="nav-item active" data-view="dashboard">🏠 Dashboard</button>
+            <button class="nav-item" data-view="tasks">✅ Tasks</button>
+            <button class="nav-item" data-view="notes">📝 Notes</button>
+            <button class="nav-item" data-view="diary">📔 Diary</button>
+            <button class="nav-item" data-view="calendar">📅 Calendar</button>
+            <button class="nav-item" data-view="contacts">👤 Contacts</button>
+            <button class="nav-item" data-view="finance">💰 Finance</button>
+            <button class="nav-item" data-view="bookmarks">🔖 Bookmarks</button>
+            <button class="nav-item" data-view="calculator">🧮 Calculator</button>
+            <button class="nav-item" data-view="charts">📊 Charts</button>
+            <button class="nav-item" data-view="files">📁 Files</button>
+            <button class="nav-item" data-view="alarms">⏰ Alarms</button>
+            <button class="nav-item" data-view="notifications">🔔 Notifications</button>
+        </nav>
+    </aside>
+
+    <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+    <!-- MAIN -->
+    <main class="main" id="main">
+
+        <!-- DASHBOARD -->
+        <section class="view active" id="view-dashboard">
+            <h1>🧠 DOSS OS</h1>
+            <p style="color:var(--muted);margin-bottom:16px;" id="hello"></p>
+            <div class="grid">
+                <div class="card"><div class="card-title">📅 Сегодня</div><div class="card-value" id="dashDate">—</div></div>
+                <div class="card"><div class="card-title">✅ Задачи</div><div class="card-value" id="dashTasks">0</div></div>
+                <div class="card"><div class="card-title">📝 Заметки</div><div class="card-value" id="dashNotes">0</div></div>
+                <div class="card"><div class="card-title">💰 Баланс</div><div class="card-value" id="dashBalance">0</div></div>
+            </div>
+            <div class="card">
+                <div class="card-title">⚡ Быстрые действия</div>
+                <div class="row" style="margin-top:8px;">
+                    <button class="btn" onclick="show('tasks')">✅ Новая задача</button>
+                    <button class="btn" onclick="show('notes')">📝 Новая заметка</button>
+                    <button class="btn" onclick="show('calculator')">🧮 Калькулятор</button>
+                    <button class="btn" onclick="show('finance')">💰 Финансы</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- TASKS -->
+        <section class="view" id="view-tasks">
+            <h1>✅ Tasks</h1>
+            <div class="row">
+                <input class="input" id="taskInput" placeholder="Что нужно сделать?" onkeydown="if(event.key==='Enter')addTask()">
+                <button class="btn btn-primary" onclick="addTask()">+ Добавить</button>
+            </div>
+            <div class="card" id="tasksList"></div>
+        </section>
+
+        <!-- NOTES -->
+        <section class="view" id="view-notes">
+            <h1>📝 Notes</h1>
+            <div class="row">
+                <input class="input" id="noteTitle" placeholder="Заголовок">
+                <button class="btn btn-primary" onclick="addNote()">+ Добавить</button>
+            </div>
+            <div id="notesList"></div>
+        </section>
+
+        <!-- DIARY -->
+        <section class="view" id="view-diary">
+            <h1>📔 Diary</h1>
+            <div class="card">
+                <div class="row">
+                    <select class="select" id="diaryMood" style="max-width:120px;">
+                        <option value="10">😄 10</option>
+                        <option value="8" selected>🙂 8</option>
+                        <option value="5">😐 5</option>
+                        <option value="3">😔 3</option>
+                        <option value="1">😢 1</option>
+                    </select>
+                    <input class="input" id="diaryText" placeholder="Что произошло сегодня?">
+                    <button class="btn btn-primary" onclick="addDiary()">+ Запись</button>
+                </div>
+            </div>
+            <div class="card" id="diaryList"></div>
+        </section>
+
+        <!-- CALENDAR -->
+        <section class="view" id="view-calendar">
+            <h1>📅 Calendar</h1>
+            <div class="row">
+                <input class="input" type="date" id="calDate">
+                <input class="input" id="calTitle" placeholder="Событие">
+                <button class="btn btn-primary" onclick="addEvent()">+ Событие</button>
+            </div>
+            <div class="card" id="calendarList"></div>
+        </section>
+
+        <!-- CONTACTS -->
+        <section class="view" id="view-contacts">
+            <h1>👤 Contacts</h1>
+            <div class="row">
+                <input class="input" id="contactName" placeholder="Имя">
+                <input class="input" id="contactPhone" placeholder="Телефон">
+                <button class="btn btn-primary" onclick="addContact()">+ Добавить</button>
+            </div>
+            <div class="card" id="contactsList"></div>
+        </section>
+
+        <!-- FINANCE -->
+        <section class="view" id="view-finance">
+            <h1>💰 Finance</h1>
+            <div class="card">
+                <div class="card-title">Баланс</div>
+                <div class="card-value" id="finBalance">0</div>
+            </div>
+            <div class="row">
+                <select class="select" id="finType" style="max-width:130px;">
+                    <option value="income">💰 Доход</option>
+                    <option value="expense">💸 Расход</option>
+                </select>
+                <input class="input" id="finAmount" type="number" placeholder="Сумма" style="max-width:120px;">
+                <input class="input" id="finNote" placeholder="Комментарий">
+                <button class="btn btn-primary" onclick="addFinance()">+ Добавить</button>
+            </div>
+            <div class="card" id="financeList"></div>
+        </section>
+
+        <!-- BOOKMARKS -->
+        <section class="view" id="view-bookmarks">
+            <h1>🔖 Bookmarks</h1>
+            <div class="row">
+                <input class="input" id="bmTitle" placeholder="Название">
+                <input class="input" id="bmUrl" placeholder="https://...">
+                <button class="btn btn-primary" onclick="addBookmark()">+ Добавить</button>
+            </div>
+            <div class="card" id="bookmarksList"></div>
+        </section>
+
+        <!-- CALCULATOR -->
+        <section class="view" id="view-calculator">
+            <h1>🧮 Calculator</h1>
+            <div class="calc-display">
+                <div class="calc-expr" id="calcExpr">0</div>
+                <div class="calc-result" id="calcResult">0</div>
+            </div>
+            <div class="calc-grid" id="calcGrid"></div>
+        </section>
+
+        <!-- STUBS -->
+        <section class="view" id="view-charts">
+            <h1>📊 Charts</h1>
+            <div class="card"><p style="color:var(--muted);">Модуль в разработке.</p></div>
+        </section>
+        <section class="view" id="view-files">
+            <h1>📁 Files</h1>
+            <div class="card"><p style="color:var(--muted);">Модуль в разработке.</p></div>
+        </section>
+        <section class="view" id="view-alarms">
+            <h1>⏰ Alarms</h1>
+            <div class="card"><p style="color:var(--muted);">Модуль в разработке.</p></div>
+        </section>
+        <section class="view" id="view-notifications">
+            <h1>🔔 Notifications</h1>
+            <div class="card"><p style="color:var(--muted);">Модуль в разработке.</p></div>
+        </section>
+
+    </main>
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="settingsModal">
+    <div class="modal-box">
+        <h3>⚙️ Настройки</h3>
+        <div class="row">
+            <button class="btn" onclick="exportData()">📤 Экспорт данных</button>
+            <button class="btn" onclick="importData()">📥 Импорт данных</button>
+            <button class="btn btn-danger" onclick="resetAll()">🗑 Удалить всё</button>
+        </div>
+        <div class="row">
+            <button class="btn" onclick="closeSettingsModal()">Закрыть</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ================================================================
+ * DOSS OS — STANDALONE
+ * Один файл. localStorage. Без Firebase, без бэкенда.
+ * ================================================================ */
+
+/* ========== STORAGE ========== */
+const KEY = 'doss_v1';
+let DB = load();
+
+function load() {
+    try {
+        const raw = localStorage.getItem(KEY);
+        if (raw) return JSON.parse(raw);
+    } catch(e) {}
+    return {
+        tasks: [], notes: [], diary: [], events: [],
+        contacts: [], finance: [], bookmarks: [],
+        theme: 'light'
+    };
+}
+function save() {
+    localStorage.setItem(KEY, JSON.stringify(DB));
+}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+/* ========== ROUTER ========== */
+function show(view) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const v = document.getElementById('view-' + view);
+    const n = document.querySelector('[data-view="' + view + '"]');
+    if (v) v.classList.add('active');
+    if (n) n.classList.add('active');
+    closeSidebar();
+    render();
+}
+document.querySelectorAll('.nav-item').forEach(n => {
+    n.addEventListener('click', () => show(n.dataset.view));
+});
+
+/* ========== SIDEBAR ========== */
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('show');
+}
+function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('show');
+}
+
+/* ========== THEME ========== */
+function toggleTheme() {
+    DB.theme = DB.theme === 'dark' ? 'light' : 'dark';
+    applyTheme();
+    save();
+}
+function applyTheme() {
+    document.documentElement.setAttribute('data-theme', DB.theme || 'light');
+}
+
+/* ========== CLOCK ========== */
+function tickClock() {
+    const d = new Date();
+    const el = document.getElementById('clock');
+    if (el) el.textContent = d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'});
+}
+
+/* ========== TASKS ========== */
+function addTask() {
+    const inp = document.getElementById('taskInput');
+    const text = inp.value.trim();
+    if (!text) return;
+    DB.tasks.unshift({ id: uid(), text, done: false, createdAt: Date.now() });
+    inp.value = '';
+    save(); render();
+}
+function toggleTask(id) {
+    const t = DB.tasks.find(x => x.id === id);
+    if (t) { t.done = !t.done; save(); render(); }
+}
+function delTask(id) {
+    DB.tasks = DB.tasks.filter(x => x.id !== id);
+    save(); render();
+}
+
+/* ========== NOTES ========== */
+function addNote() {
+    const inp = document.getElementById('noteTitle');
+    const title = inp.value.trim();
+    if (!title) return;
+    const note = { id: uid(), title, body: '', createdAt: Date.now() };
+    DB.notes.unshift(note);
+    inp.value = '';
+    save(); render();
+    editNote(note.id);
+}
+function editNote(id) {
+    const n = DB.notes.find(x => x.id === id);
+    if (!n) return;
+    const newTitle = prompt('Заголовок:', n.title);
+    if (newTitle === null) return;
+    const newBody = prompt('Текст:', n.body);
+    if (newBody === null) return;
+    n.title = newTitle.trim() || n.title;
+    n.body = newBody;
+    save(); render();
+}
+function delNote(id) {
+    if (!confirm('Удалить заметку?')) return;
+    DB.notes = DB.notes.filter(x => x.id !== id);
+    save(); render();
+}
+
+/* ========== DIARY ========== */
+function addDiary() {
+    const mood = parseInt(document.getElementById('diaryMood').value, 10) || 5;
+    const text = document.getElementById('diaryText').value.trim();
+    if (!text) return;
+    DB.diary.unshift({ id: uid(), mood, text, createdAt: Date.now() });
+    document.getElementById('diaryText').value = '';
+    save(); render();
+}
+function delDiary(id) {
+    DB.diary = DB.diary.filter(x => x.id !== id);
+    save(); render();
+}
+
+/* ========== CALENDAR ========== */
+function addEvent() {
+    const date = document.getElementById('calDate').value;
+    const title = document.getElementById('calTitle').value.trim();
+    if (!date || !title) return;
+    DB.events.push({ id: uid(), date, title, createdAt: Date.now() });
+    document.getElementById('calTitle').value = '';
+    save(); render();
+}
+function delEvent(id) {
+    DB.events = DB.events.filter(x => x.id !== id);
+    save(); render();
+}
+
+/* ========== CONTACTS ========== */
+function addContact() {
+    const name = document.getElementById('contactName').value.trim();
+    const phone = document.getElementById('contactPhone').value.trim();
+    if (!name) return;
+    DB.contacts.unshift({ id: uid(), name, phone, createdAt: Date.now() });
+    document.getElementById('contactName').value = '';
+    document.getElementById('contactPhone').value = '';
+    save(); render();
+}
+function delContact(id) {
+    DB.contacts = DB.contacts.filter(x => x.id !== id);
+    save(); render();
+}
+
+/* ========== FINANCE ========== */
+function addFinance() {
+    const type = document.getElementById('finType').value;
+    const amount = parseFloat(document.getElementById('finAmount').value);
+    const note = document.getElementById('finNote').value.trim();
+    if (!amount || amount <= 0) return;
+    DB.finance.unshift({ id: uid(), type, amount, note, createdAt: Date.now() });
+    document.getElementById('finAmount').value = '';
+    document.getElementById('finNote').value = '';
+    save(); render();
+}
+function delFinance(id) {
+    DB.finance = DB.finance.filter(x => x.id !== id);
+    save(); render();
+}
+
+/* ========== BOOKMARKS ========== */
+function addBookmark() {
+    const title = document.getElementById('bmTitle').value.trim();
+    const url = document.getElementById('bmUrl').value.trim();
+    if (!title || !url) return;
+    DB.bookmarks.unshift({ id: uid(), title, url, createdAt: Date.now() });
+    document.getElementById('bmTitle').value = '';
+    document.getElementById('bmUrl').value = '';
+    save(); render();
+}
+function delBookmark(id) {
+    DB.bookmarks = DB.bookmarks.filter(x => x.id !== id);
+    save(); render();
+}
+
+/* ========== CALCULATOR ========== */
+let calc = { expr: '', result: '0' };
+const CALC_BUTTONS = ['C','⌫','(',')','7','8','9','/','4','5','6','*','1','2','3','-','0','.','=','+'];
+function buildCalc() {
+    const grid = document.getElementById('calcGrid');
+    grid.innerHTML = CALC_BUTTONS.map(b => {
+        let cls = 'calc-btn';
+        if ('+-*/'.includes(b)) cls += ' op';
+        if (b === '=') cls += ' eq';
+        if (b === 'C' || b === '⌫') cls += ' fn';
+        return '<button class="' + cls + '" onclick="calcPress(\'' + b + '\')">' + b + '</button>';
+    }).join('');
+}
+function calcPress(ch) {
+    if (ch === 'C') { calc.expr = ''; calc.result = '0'; }
+    else if (ch === '⌫') { calc.expr = calc.expr.slice(0, -1); }
+    else if (ch === '=') { calc.result = safeEval(calc.expr); }
+    else { calc.expr += ch; }
+    document.getElementById('calcExpr').textContent = calc.expr || '0';
+    document.getElementById('calcResult').textContent = calc.result;
+}
+function safeEval(expr) {
+    if (!/^[0-9+\-*/().\s]+$/.test(expr)) return 'Ошибка';
+    try {
+        const v = Function('"use strict";return (' + expr + ')')();
+        if (typeof v !== 'number' || !isFinite(v)) return 'Ошибка';
+        return String(v);
+    } catch(e) { return 'Ошибка'; }
+}
+
+/* ========== SETTINGS MODAL ========== */
+function openSettingsModal() { document.getElementById('settingsModal').classList.add('open'); }
+function closeSettingsModal() { document.getElementById('settingsModal').classList.remove('open'); }
+function exportData() {
+    const blob = new Blob([JSON.stringify(DB, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'doss-backup-' + Date.now() + '.json';
+    a.click(); URL.revokeObjectURL(url);
+}
+function importData() {
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = '.json';
+    inp.onchange = e => {
+        const f = e.target.files[0];
+        if (!f) return;
+        const r = new FileReader();
+        r.onload = () => {
+            try {
+                const data = JSON.parse(r.result);
+                if (typeof data !== 'object') throw new Error();
+                DB = Object.assign(DB, data);
+                save(); applyTheme(); render();
+                alert('✅ Импортировано');
+            } catch(e) { alert('❌ Неверный файл'); }
+        };
+        r.readAsText(f);
+    };
+    inp.click();
+}
+function resetAll() {
+    if (!confirm('Удалить ВСЕ данные DOSS OS?')) return;
+    DB = { tasks: [], notes: [], diary: [], events: [], contacts: [], finance: [], bookmarks: [], theme: DB.theme };
+    save(); render();
+}
+
+/* ========== RENDER ========== */
+function escapeHtml(s) {
+    return String(s || '').replace(/[&<>"]/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[m]));
+}
+function fmtDate(ts) {
+    return new Date(ts).toLocaleDateString('ru-RU', { day:'numeric', month:'short' });
+}
+function render() {
+    // Dashboard
+    document.getElementById('dashDate').textContent = new Date().toLocaleDateString('ru-RU', { day:'numeric', month:'long' });
+    document.getElementById('dashTasks').textContent = DB.tasks.filter(t => !t.done).length;
+    document.getElementById('dashNotes').textContent = DB.notes.length;
+    const balance = DB.finance.reduce((s, f) => s + (f.type === 'income' ? f.amount : -f.amount), 0);
+    document.getElementById('dashBalance').textContent = balance.toFixed(2);
+    document.getElementById('hello').textContent = 'Привет! Это твоя персональная система.';
+
+    // Tasks
+    const tl = document.getElementById('tasksList');
+    if (!DB.tasks.length) tl.innerHTML = '<div class="empty">Пока пусто. Добавь первую задачу.</div>';
+    else tl.innerHTML = DB.tasks.map(t =>
+        '<div class="item ' + (t.done ? 'done' : '') + '">' +
+            '<input type="checkbox" class="check" ' + (t.done ? 'checked' : '') + ' onchange="toggleTask(\'' + t.id + '\')">' +
+            '<div class="item-main"><div class="item-title">' + escapeHtml(t.text) + '</div>' +
+            '<div class="item-sub">' + fmtDate(t.createdAt) + '</div></div>' +
+            '<button class="btn btn-sm btn-danger" onclick="delTask(\'' + t.id + '\')">✕</button>' +
+        '</div>'
+    ).join('');
+
+    // Notes
+    const nl = document.getElementById('notesList');
+    if (!DB.notes.length) nl.innerHTML = '<div class="card"><div class="empty">Заметок нет.</div></div>';
+    else nl.innerHTML = DB.notes.map(n =>
+        '<div class="card">' +
+            '<div style="display:flex;justify-content:space-between;gap:8px;">' +
+                '<strong>' + escapeHtml(n.title) + '</strong>' +
+                '<div style="display:flex;gap:4px;">' +
+                    '<button class="btn btn-sm" onclick="editNote(\'' + n.id + '\')">✏️</button>' +
+                    '<button class="btn btn-sm btn-danger" onclick="delNote(\'' + n.id + '\')">✕</button>' +
+                '</div>' +
+            '</div>' +
+            (n.body ? '<div style="margin-top:8px;color:var(--muted);white-space:pre-wrap;">' + escapeHtml(n.body) + '</div>' : '') +
+            '<div class="item-sub" style="margin-top:6px;">' + fmtDate(n.createdAt) + '</div>' +
+        '</div>'
+    ).join('');
+
+    // Diary
+    const dl = document.getElementById('diaryList');
+    if (!DB.diary.length) dl.innerHTML = '<div class="empty">Записей нет.</div>';
+    else dl.innerHTML = DB.diary.map(d =>
+        '<div class="item">' +
+            '<div style="font-size:1.4rem;">' + (d.mood >= 8 ? '😄' : d.mood >= 5 ? '🙂' : '😔') + '</div>' +
+            '<div class="item-main"><div class="item-title">' + escapeHtml(d.text) + '</div>' +
+            '<div class="item-sub">' + fmtDate(d.createdAt) + ' · настроение ' + d.mood + '/10</div></div>' +
+            '<button class="btn btn-sm btn-danger" onclick="delDiary(\'' + d.id + '\')">✕</button>' +
+        '</div>'
+    ).join('');
+
+    // Calendar
+    const cl = document.getElementById('calendarList');
+    const sortedEvents = DB.events.slice().sort((a, b) => a.date.localeCompare(b.date));
+    if (!sortedEvents.length) cl.innerHTML = '<div class="empty">Событий нет.</div>';
+    else cl.innerHTML = sortedEvents.map(e =>
+        '<div class="item">' +
+            '<div style="font-weight:700;color:var(--accent);">' + escapeHtml(e.date) + '</div>' +
+            '<div class="item-main"><div class="item-title">' + escapeHtml(e.title) + '</div></div>' +
+            '<button class="btn btn-sm btn-danger" onclick="delEvent(\'' + e.id + '\')">✕</button>' +
+        '</div>'
+    ).join('');
+
+    // Contacts
+    const ct = document.getElementById('contactsList');
+    if (!DB.contacts.length) ct.innerHTML = '<div class="empty">Контактов нет.</div>';
+    else ct.innerHTML = DB.contacts.map(c =>
+        '<div class="item">' +
+            '<div class="item-main"><div class="item-title">' + escapeHtml(c.name) + '</div>' +
+            (c.phone ? '<div class="item-sub">📞 ' + escapeHtml(c.phone) + '</div>' : '') +
+            '</div>' +
+            '<button class="btn btn-sm btn-danger" onclick="delContact(\'' + c.id + '\')">✕</button>' +
+        '</div>'
+    ).join('');
+
+    // Finance
+    document.getElementById('finBalance').textContent = balance.toFixed(2);
+    const fl = document.getElementById('financeList');
+    if (!DB.finance.length) fl.innerHTML = '<div class="empty">Операций нет.</div>';
+    else fl.innerHTML = DB.finance.map(f =>
+        '<div class="item">' +
+            '<div style="font-weight:700;color:' + (f.type === 'income' ? 'var(--success)' : 'var(--danger)') + ';min-width:80px;">' +
+                (f.type === 'income' ? '+' : '−') + f.amount.toFixed(2) +
+            '</div>' +
+            '<div class="item-main"><div class="item-title">' + escapeHtml(f.note || '—') + '</div>' +
+            '<div class="item-sub">' + fmtDate(f.createdAt) + '</div></div>' +
+            '<button class="btn btn-sm btn-danger" onclick="delFinance(\'' + f.id + '\')">✕</button>' +
+        '</div>'
+    ).join('');
+
+    // Bookmarks
+    const bl = document.getElementById('bookmarksList');
+    if (!DB.bookmarks.length) bl.innerHTML = '<div class="empty">Закладок нет.</div>';
+    else bl.innerHTML = DB.bookmarks.map(b =>
+        '<div class="item">' +
+            '<div class="item-main"><div class="item-title">' + escapeHtml(b.title) + '</div>' +
+            '<div class="item-sub"><a href="' + escapeHtml(b.url) + '" target="_blank" rel="noopener" style="color:var(--accent);">' + escapeHtml(b.url) + '</a></div></div>' +
+            '<button class="btn btn-sm btn-danger" onclick="delBookmark(\'' + b.id + '\')">✕</button>' +
+        '</div>'
+    ).join('');
+}
+
+/* ========== INIT ========== */
+document.addEventListener('DOMContentLoaded', () => {
+    applyTheme();
+    buildCalc();
+    // default date = today
+    document.getElementById('calDate').value = new Date().toISOString().slice(0, 10);
+    render();
+    tickClock();
+    setInterval(tickClock, 30000);
+});
+</script>
+</body>
+</html>
