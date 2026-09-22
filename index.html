@@ -5,146 +5,91 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DOSS OS — Personal Operating System</title>
 <style>
-/* ========== THEME ========== */
 :root {
-    --bg: #f0f2f5;
-    --card: #ffffff;
-    --text: #1c1e21;
-    --muted: #65676b;
-    --border: #e4e6eb;
-    --input: #f0f2f5;
-    --hover: #f0f2f5;
-    --accent: #1877f2;
-    --danger: #e74c3c;
-    --success: #27ae60;
-    --warning: #f39c12;
-    --radius: 12px;
-    --radius-sm: 8px;
+    --bg: #f0f2f5; --card: #ffffff; --text: #1c1e21; --muted: #65676b;
+    --border: #e4e6eb; --input: #f0f2f5; --hover: #f0f2f5;
+    --accent: #1877f2; --danger: #e74c3c; --success: #27ae60; --warning: #f39c12;
+    --radius: 12px; --radius-sm: 8px;
 }
 [data-theme="dark"] {
-    --bg: #18191a;
-    --card: #242526;
-    --text: #e4e6eb;
-    --muted: #b0b3b8;
-    --border: #3a3b3c;
-    --input: #3a3b3c;
-    --hover: #3a3b3c;
-    --accent: #2d88ff;
+    --bg: #18191a; --card: #242526; --text: #e4e6eb; --muted: #b0b3b8;
+    --border: #3a3b3c; --input: #3a3b3c; --hover: #3a3b3c; --accent: #2d88ff;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: var(--bg); color: var(--text);
-    min-height: 100vh; transition: background 0.2s;
+    background: var(--bg); color: var(--text); min-height: 100vh; transition: background 0.2s;
 }
-button, input, textarea, select {
-    font-family: inherit; font-size: inherit; color: inherit;
-}
+button, input, textarea, select { font-family: inherit; font-size: inherit; color: inherit; }
 button { cursor: pointer; }
 
-/* ========== LAYOUT ========== */
 .app {
-    display: grid;
-    grid-template-columns: 240px 1fr;
+    display: grid; grid-template-columns: 240px 1fr;
     grid-template-rows: 56px 1fr;
     grid-template-areas: "top top" "side main";
     min-height: 100vh;
 }
 .topbar {
-    grid-area: top;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 16px;
-    background: var(--card);
-    border-bottom: 1px solid var(--border);
+    grid-area: top; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 16px; background: var(--card); border-bottom: 1px solid var(--border);
     position: sticky; top: 0; z-index: 100;
 }
-.topbar-left, .topbar-right {
-    display: flex; align-items: center; gap: 12px;
-}
+.topbar-left, .topbar-right { display: flex; align-items: center; gap: 12px; }
 .burger { display: none; cursor: pointer; font-size: 1.2rem; }
 .brand { font-weight: 700; font-size: 1rem; }
-.clock { font-size: 0.85rem; color: var(--muted); }
-.icon-btn {
-    background: none; border: none; font-size: 1.1rem;
-    padding: 4px 6px; border-radius: var(--radius-sm);
-}
+.clock { font-size: 0.85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.icon-btn { background: none; border: none; font-size: 1.1rem; padding: 4px 6px; border-radius: var(--radius-sm); }
 .icon-btn:hover { background: var(--hover); }
 
-/* ========== SIDEBAR ========== */
 .sidebar {
-    grid-area: side;
-    background: var(--card);
-    border-right: 1px solid var(--border);
-    padding: 12px 8px;
-    overflow-y: auto;
+    grid-area: side; background: var(--card); border-right: 1px solid var(--border);
+    padding: 12px 8px; overflow-y: auto;
 }
 .nav { display: flex; flex-direction: column; gap: 2px; }
 .nav-item {
     display: flex; align-items: center; gap: 10px;
     padding: 10px 12px; border-radius: var(--radius-sm);
-    color: var(--text); text-decoration: none;
-    font-size: 0.9rem; transition: 0.15s;
-    border: none; background: none; text-align: left; width: 100%;
-    cursor: pointer;
+    color: var(--text); text-decoration: none; font-size: 0.9rem;
+    transition: 0.15s; border: none; background: none; text-align: left;
+    width: 100%; cursor: pointer;
 }
 .nav-item:hover { background: var(--hover); }
 .nav-item.active { background: var(--accent); color: #fff; }
 
-/* ========== MAIN ========== */
 .main { grid-area: main; padding: 20px; overflow-x: hidden; }
 .view { display: none; }
 .view.active { display: block; }
 h1 { font-size: 1.5rem; margin-bottom: 16px; }
 
-/* ========== CARDS ========== */
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 12px; margin-bottom: 16px;
-}
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
 .card {
     background: var(--card); border: 1px solid var(--border);
     border-radius: var(--radius); padding: 14px 16px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-    margin-bottom: 12px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-bottom: 12px;
 }
-.card-title {
-    font-size: 0.8rem; color: var(--muted);
-    text-transform: uppercase; letter-spacing: 0.5px;
-    margin-bottom: 6px;
-}
+.card-title { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
 .card-value { font-size: 1.5rem; font-weight: 700; }
 
-/* ========== FORMS ========== */
-.row {
-    display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;
-}
+.row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
 .input, .textarea, .select {
-    flex: 1; min-width: 0;
-    padding: 10px 12px;
+    flex: 1; min-width: 0; padding: 10px 12px;
     background: var(--input); border: 1px solid var(--border);
-    border-radius: var(--radius-sm); color: var(--text);
-    outline: none;
+    border-radius: var(--radius-sm); color: var(--text); outline: none;
 }
 .input:focus, .textarea:focus { border-color: var(--accent); }
 .textarea { min-height: 80px; resize: vertical; }
 .btn {
     padding: 10px 16px; border-radius: var(--radius-sm);
     border: 1px solid var(--border); background: var(--card);
-    color: var(--text); font-weight: 600; font-size: 0.85rem;
-    transition: 0.15s;
+    color: var(--text); font-weight: 600; font-size: 0.85rem; transition: 0.15s;
 }
 .btn:hover { background: var(--hover); }
-.btn-primary {
-    background: var(--accent); color: #fff; border-color: var(--accent);
-}
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
 .btn-primary:hover { opacity: 0.9; }
-.btn-danger {
-    background: var(--danger); color: #fff; border-color: var(--danger);
-}
+.btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+.btn-success { background: var(--success); color: #fff; border-color: var(--success); }
 .btn-sm { padding: 6px 10px; font-size: 0.75rem; }
 
-/* ========== LIST ITEMS ========== */
 .item {
     display: flex; align-items: center; gap: 10px;
     padding: 10px 12px; border-bottom: 1px solid var(--border);
@@ -154,39 +99,63 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; }
 .item-title { font-size: 0.9rem; }
 .item-sub { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
 .item.done .item-title { text-decoration: line-through; color: var(--muted); }
-.check {
-    width: 20px; height: 20px; cursor: pointer;
-    accent-color: var(--accent);
-}
-.empty {
-    text-align: center; padding: 20px;
-    color: var(--muted); font-size: 0.85rem;
-}
+.check { width: 20px; height: 20px; cursor: pointer; accent-color: var(--accent); }
+.empty { text-align: center; padding: 20px; color: var(--muted); font-size: 0.85rem; }
 
-/* ========== CALCULATOR ========== */
+/* CONTACTS */
+.contact-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.contact-actions a {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 6px 12px; border-radius: var(--radius-sm);
+    font-size: 0.75rem; text-decoration: none; font-weight: 600;
+    border: 1px solid var(--border); background: var(--card); color: var(--text);
+    transition: 0.15s;
+}
+.contact-actions a:hover { background: var(--hover); }
+.contact-actions a.call { background: var(--success); color: #fff; border-color: var(--success); }
+.contact-actions a.call:hover { opacity: 0.9; }
+
+/* ALARMS */
+.clock-big {
+    font-size: 4rem; font-weight: 700; text-align: center;
+    font-variant-numeric: tabular-nums; padding: 20px 0;
+    letter-spacing: 2px;
+}
+.clock-date { text-align: center; color: var(--muted); font-size: 1rem; margin-bottom: 20px; }
+.tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+.tab {
+    padding: 8px 16px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: var(--card);
+    color: var(--text); font-size: 0.85rem; cursor: pointer;
+}
+.tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.timer-display {
+    font-size: 3rem; font-weight: 700; text-align: center;
+    font-variant-numeric: tabular-nums; padding: 20px 0;
+}
+.alarm-item .item-title { font-weight: 600; font-size: 1.1rem; }
+
+/* CALCULATOR */
 .calc-display {
     background: var(--card); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 16px; margin-bottom: 12px;
-    text-align: right;
+    border-radius: var(--radius); padding: 16px; margin-bottom: 12px; text-align: right;
 }
 .calc-expr { font-size: 0.9rem; color: var(--muted); min-height: 1.2em; }
 .calc-result { font-size: 1.8rem; font-weight: 700; margin-top: 6px; }
-.calc-grid {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
-    max-width: 420px;
-}
+.calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; max-width: 420px; }
 .calc-btn {
     padding: 14px 0; font-size: 1rem;
     border: 1px solid var(--border); background: var(--card);
-    color: var(--text); border-radius: var(--radius-sm);
-    cursor: pointer; transition: 0.15s;
+    color: var(--text); border-radius: var(--radius-sm); cursor: pointer;
+    transition: 0.15s;
 }
 .calc-btn:hover { background: var(--hover); }
 .calc-btn.op { color: var(--accent); font-weight: 600; }
 .calc-btn.eq { background: var(--accent); color: #fff; border-color: var(--accent); }
 .calc-btn.fn { color: var(--danger); }
 
-/* ========== MODAL ========== */
 .modal {
     display: none; position: fixed; inset: 0;
     background: rgba(0,0,0,0.5); z-index: 1000;
@@ -202,17 +171,10 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; }
 .modal-box .row { flex-direction: column; }
 .modal-box .input, .modal-box .textarea { width: 100%; }
 
-/* ========== MOBILE ========== */
-.overlay {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,0.5); z-index: 90;
-}
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 90; }
 .overlay.show { display: block; }
 @media (max-width: 768px) {
-    .app {
-        grid-template-columns: 1fr;
-        grid-template-areas: "top" "main";
-    }
+    .app { grid-template-columns: 1fr; grid-template-areas: "top" "main"; }
     .sidebar {
         position: fixed; top: 56px; left: 0; bottom: 0;
         width: 260px; transform: translateX(-100%);
@@ -222,6 +184,8 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; }
     .burger { display: inline; }
     .clock { display: none; }
     .main { padding: 12px; }
+    .clock-big { font-size: 2.8rem; }
+    .timer-display { font-size: 2.2rem; }
 }
 </style>
 </head>
@@ -229,7 +193,6 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; }
 
 <div class="app">
 
-    <!-- TOPBAR -->
     <header class="topbar">
         <div class="topbar-left">
             <span class="burger" onclick="toggleSidebar()">☰</span>
@@ -242,10 +205,10 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; }
         </div>
     </header>
 
-    <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
         <nav class="nav">
             <button class="nav-item active" data-view="dashboard">🏠 Dashboard</button>
+            <button class="nav-item" data-view="alarms">⏰ Alarms & Time</button>
             <button class="nav-item" data-view="tasks">✅ Tasks</button>
             <button class="nav-item" data-view="notes">📝 Notes</button>
             <button class="nav-item" data-view="diary">📔 Diary</button>
@@ -256,14 +219,12 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; }
             <button class="nav-item" data-view="calculator">🧮 Calculator</button>
             <button class="nav-item" data-view="charts">📊 Charts</button>
             <button class="nav-item" data-view="files">📁 Files</button>
-            <button class="nav-item" data-view="alarms">⏰ Alarms</button>
             <button class="nav-item" data-view="notifications">🔔 Notifications</button>
         </nav>
     </aside>
 
     <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
 
-    <!-- MAIN -->
     <main class="main" id="main">
 
         <!-- DASHBOARD -->
@@ -272,17 +233,91 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; }
             <p style="color:var(--muted);margin-bottom:16px;" id="hello"></p>
             <div class="grid">
                 <div class="card"><div class="card-title">📅 Сегодня</div><div class="card-value" id="dashDate">—</div></div>
+                <div class="card"><div class="card-title">🕐 Время</div><div class="card-value" id="dashTime">—</div></div>
                 <div class="card"><div class="card-title">✅ Задачи</div><div class="card-value" id="dashTasks">0</div></div>
                 <div class="card"><div class="card-title">📝 Заметки</div><div class="card-value" id="dashNotes">0</div></div>
                 <div class="card"><div class="card-title">💰 Баланс</div><div class="card-value" id="dashBalance">0</div></div>
+                <div class="card"><div class="card-title">👤 Контакты</div><div class="card-value" id="dashContacts">0</div></div>
             </div>
             <div class="card">
                 <div class="card-title">⚡ Быстрые действия</div>
                 <div class="row" style="margin-top:8px;">
+                    <button class="btn" onclick="show('alarms')">⏰ Часы</button>
                     <button class="btn" onclick="show('tasks')">✅ Новая задача</button>
                     <button class="btn" onclick="show('notes')">📝 Новая заметка</button>
+                    <button class="btn" onclick="show('contacts')">📞 Позвонить</button>
                     <button class="btn" onclick="show('calculator')">🧮 Калькулятор</button>
-                    <button class="btn" onclick="show('finance')">💰 Финансы</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ALARMS & TIME -->
+        <section class="view" id="view-alarms">
+            <h1>⏰ Часы, будильник, таймер</h1>
+
+            <div class="card">
+                <div class="clock-big" id="bigClock">00:00:00</div>
+                <div class="clock-date" id="bigDate"></div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" data-tab="alarm" onclick="switchTab('alarm')">🔔 Будильник</button>
+                <button class="tab" data-tab="timer" onclick="switchTab('timer')">⏳ Таймер</button>
+                <button class="tab" data-tab="stopwatch" onclick="switchTab('stopwatch')">⏱ Секундомер</button>
+                <button class="tab" data-tab="worldclock" onclick="switchTab('worldclock')">🌍 Мировое время</button>
+            </div>
+
+            <!-- ALARM -->
+            <div class="tab-content active" id="tab-alarm">
+                <div class="row">
+                    <input class="input" type="time" id="alarmTime" style="max-width:160px;">
+                    <input class="input" id="alarmLabel" placeholder="Название (необязательно)">
+                    <button class="btn btn-primary" onclick="addAlarm()">+ Добавить</button>
+                </div>
+                <div class="card" id="alarmsList"></div>
+            </div>
+
+            <!-- TIMER -->
+            <div class="tab-content" id="tab-timer">
+                <div class="card">
+                    <div class="timer-display" id="timerDisplay">00:00:00</div>
+                    <div class="row" style="justify-content:center;">
+                        <input class="input" type="number" id="timerMin" placeholder="мин" min="0" style="max-width:90px;">
+                        <input class="input" type="number" id="timerSec" placeholder="сек" min="0" max="59" style="max-width:90px;">
+                    </div>
+                    <div class="row" style="justify-content:center;">
+                        <button class="btn btn-success" onclick="startTimer()">▶ Старт</button>
+                        <button class="btn" onclick="pauseTimer()">⏸ Пауза</button>
+                        <button class="btn btn-danger" onclick="resetTimer()">⏹ Сброс</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STOPWATCH -->
+            <div class="tab-content" id="tab-stopwatch">
+                <div class="card">
+                    <div class="timer-display" id="stopwatchDisplay">00:00:00.00</div>
+                    <div class="row" style="justify-content:center;">
+                        <button class="btn btn-success" onclick="startStopwatch()">▶ Старт</button>
+                        <button class="btn" onclick="pauseStopwatch()">⏸ Пауза</button>
+                        <button class="btn" onclick="lapStopwatch()">🏁 Круг</button>
+                        <button class="btn btn-danger" onclick="resetStopwatch()">⏹ Сброс</button>
+                    </div>
+                    <div id="lapsList" style="margin-top:12px;"></div>
+                </div>
+            </div>
+
+            <!-- WORLD CLOCK -->
+            <div class="tab-content" id="tab-worldclock">
+                <div class="card">
+                    <div class="item"><div class="item-main"><div class="item-title">🇷🇺 Москва</div></div><div id="wc-moscow" style="font-weight:700;font-variant-numeric:tabular-nums;"></div></div>
+                    <div class="item"><div class="item-main"><div class="item-title">🇺🇦 Киев</div></div><div id="wc-kiev" style="font-weight:700;font-variant-numeric:tabular-nums;"></div></div>
+                    <div class="item"><div class="item-main"><div class="item-title">🇬🇧 Лондон</div></div><div id="wc-london" style="font-weight:700;font-variant-numeric:tabular-nums;"></div></div>
+                    <div class="item"><div class="item-main"><div class="item-title">🇺🇸 Нью-Йорк</div></div><div id="wc-ny" style="font-weight:700;font-variant-numeric:tabular-nums;"></div></div>
+                    <div class="item"><div class="item-main"><div class="item-title">🇯🇵 Токио</div></div><div id="wc-tokyo" style="font-weight:700;font-variant-numeric:tabular-nums;"></div></div>
+                    <div class="item"><div class="item-main"><div class="item-title">🇦🇪 Дубай</div></div><div id="wc-dubai" style="font-weight:700;font-variant-numeric:tabular-nums;"></div></div>
+                    <div class="item"><div class="item-main"><div class="item-title">🇺🇸 Лос-Анджелес</div></div><div id="wc-la" style="font-weight:700;font-variant-numeric:tabular-nums;"></div></div>
+                    <div class="item"><div class="item-main"><div class="item-title">🇦🇺 Сидней</div></div><div id="wc-sydney" style="font-weight:700;font-variant-numeric:tabular-nums;"></div></div>
                 </div>
             </div>
         </section>
@@ -339,11 +374,16 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; }
 
         <!-- CONTACTS -->
         <section class="view" id="view-contacts">
-            <h1>👤 Contacts</h1>
+            <h1>👤 Записная книжка</h1>
             <div class="row">
                 <input class="input" id="contactName" placeholder="Имя">
-                <input class="input" id="contactPhone" placeholder="Телефон">
+                <input class="input" id="contactPhone" placeholder="Телефон (например +380...)">
                 <button class="btn btn-primary" onclick="addContact()">+ Добавить</button>
+            </div>
+            <div class="row">
+                <input class="input" id="contactEmail" placeholder="Email (необязательно)">
+                <input class="input" id="contactTelegram" placeholder="Telegram (@ник, необязательно)">
+                <input class="input" id="contactNote" placeholder="Заметка (необязательно)">
             </div>
             <div class="card" id="contactsList"></div>
         </section>
@@ -397,10 +437,6 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; }
             <h1>📁 Files</h1>
             <div class="card"><p style="color:var(--muted);">Модуль в разработке.</p></div>
         </section>
-        <section class="view" id="view-alarms">
-            <h1>⏰ Alarms</h1>
-            <div class="card"><p style="color:var(--muted);">Модуль в разработке.</p></div>
-        </section>
         <section class="view" id="view-notifications">
             <h1>🔔 Notifications</h1>
             <div class="card"><p style="color:var(--muted);">Модуль в разработке.</p></div>
@@ -409,7 +445,6 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; }
     </main>
 </div>
 
-<!-- MODAL -->
 <div class="modal" id="settingsModal">
     <div class="modal-box">
         <h3>⚙️ Настройки</h3>
@@ -417,6 +452,7 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; }
             <button class="btn" onclick="exportData()">📤 Экспорт данных</button>
             <button class="btn" onclick="importData()">📥 Импорт данных</button>
             <button class="btn btn-danger" onclick="resetAll()">🗑 Удалить всё</button>
+            <button class="btn" onclick="requestNotifPermission()">🔔 Разрешить уведомления</button>
         </div>
         <div class="row">
             <button class="btn" onclick="closeSettingsModal()">Закрыть</button>
@@ -426,12 +462,12 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; }
 
 <script>
 /* ================================================================
- * DOSS OS — STANDALONE
- * Один файл. localStorage. Без Firebase, без бэкенда.
+ * DOSS OS — STANDALONE v2
+ * + Часы, будильник, таймер, секундомер, мировое время
+ * + Записная книжка с кнопками Позвонить / SMS / Email / Telegram
  * ================================================================ */
 
-/* ========== STORAGE ========== */
-const KEY = 'doss_v1';
+const KEY = 'doss_v2';
 let DB = load();
 
 function load() {
@@ -441,14 +477,18 @@ function load() {
     } catch(e) {}
     return {
         tasks: [], notes: [], diary: [], events: [],
-        contacts: [], finance: [], bookmarks: [],
+        contacts: [], finance: [], bookmarks: [], alarms: [],
         theme: 'light'
     };
 }
-function save() {
-    localStorage.setItem(KEY, JSON.stringify(DB));
-}
+function save() { localStorage.setItem(KEY, JSON.stringify(DB)); }
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function escapeHtml(s) {
+    return String(s || '').replace(/[&<>"]/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[m]));
+}
+function fmtDate(ts) { return new Date(ts).toLocaleDateString('ru-RU', { day:'numeric', month:'short' }); }
+function pad(n) { return n < 10 ? '0' + n : '' + n; }
+function pad2(n) { return n < 10 ? '0' + n : '' + n; }
 
 /* ========== ROUTER ========== */
 function show(view) {
@@ -465,7 +505,6 @@ document.querySelectorAll('.nav-item').forEach(n => {
     n.addEventListener('click', () => show(n.dataset.view));
 });
 
-/* ========== SIDEBAR ========== */
 function toggleSidebar() {
     document.getElementById('sidebar').classList.toggle('open');
     document.getElementById('overlay').classList.toggle('show');
@@ -478,18 +517,210 @@ function closeSidebar() {
 /* ========== THEME ========== */
 function toggleTheme() {
     DB.theme = DB.theme === 'dark' ? 'light' : 'dark';
-    applyTheme();
-    save();
+    applyTheme(); save();
 }
 function applyTheme() {
     document.documentElement.setAttribute('data-theme', DB.theme || 'light');
 }
 
-/* ========== CLOCK ========== */
-function tickClock() {
+/* ========== CLOCK / TIME ========== */
+function tickAll() {
     const d = new Date();
-    const el = document.getElementById('clock');
-    if (el) el.textContent = d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'});
+    // topbar
+    const c = document.getElementById('clock');
+    if (c) c.textContent = d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU');
+    // dashboard
+    const dt = document.getElementById('dashTime');
+    if (dt) dt.textContent = d.toLocaleTimeString('ru-RU');
+    // big clock
+    const bc = document.getElementById('bigClock');
+    if (bc) bc.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+    const bd = document.getElementById('bigDate');
+    if (bd) bd.textContent = d.toLocaleDateString('ru-RU', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+    // world clock
+    const zones = [
+        ['wc-moscow', 'Europe/Moscow'],
+        ['wc-kiev', 'Europe/Kiev'],
+        ['wc-london', 'Europe/London'],
+        ['wc-ny', 'America/New_York'],
+        ['wc-tokyo', 'Asia/Tokyo'],
+        ['wc-dubai', 'Asia/Dubai'],
+        ['wc-la', 'America/Los_Angeles'],
+        ['wc-sydney', 'Australia/Sydney']
+    ];
+    zones.forEach(([id, tz]) => {
+        const el = document.getElementById(id);
+        if (el) {
+            try {
+                el.textContent = d.toLocaleTimeString('ru-RU', { timeZone: tz, hour:'2-digit', minute:'2-digit', second:'2-digit' });
+            } catch(e) { el.textContent = '—'; }
+        }
+    });
+
+    checkAlarms(d);
+}
+
+/* ========== ALARMS ========== */
+let lastAlarmCheck = '';
+
+function addAlarm() {
+    const time = document.getElementById('alarmTime').value;
+    const label = document.getElementById('alarmLabel').value.trim();
+    if (!time) { alert('Выбери время'); return; }
+    DB.alarms.push({ id: uid(), time, label, enabled: true, createdAt: Date.now() });
+    document.getElementById('alarmTime').value = '';
+    document.getElementById('alarmLabel').value = '';
+    save(); render();
+    requestNotifPermission();
+}
+function toggleAlarm(id) {
+    const a = DB.alarms.find(x => x.id === id);
+    if (a) { a.enabled = !a.enabled; save(); render(); }
+}
+function delAlarm(id) {
+    DB.alarms = DB.alarms.filter(x => x.id !== id);
+    save(); render();
+}
+function checkAlarms(d) {
+    const now = pad(d.getHours()) + ':' + pad(d.getMinutes());
+    if (now === lastAlarmCheck) return;
+    lastAlarmCheck = now;
+    let fired = false;
+    DB.alarms.forEach(a => {
+        if (a.enabled && a.time === now) {
+            fired = true;
+            playAlarmSound();
+            if (Notification && Notification.permission === 'granted') {
+                new Notification('⏰ DOSS OS', { body: a.label || 'Будильник: ' + a.time });
+            } else {
+                alert('⏰ Будильник: ' + (a.label || a.time));
+            }
+        }
+    });
+    if (fired) save();
+}
+function playAlarmSound() {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        [0, 0.3, 0.6].forEach(t => {
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.connect(g); g.connect(ctx.destination);
+            o.frequency.value = 880;
+            g.gain.setValueAtTime(0.3, ctx.currentTime + t);
+            g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.25);
+            o.start(ctx.currentTime + t);
+            o.stop(ctx.currentTime + t + 0.25);
+        });
+    } catch(e) {}
+}
+
+/* ========== TABS ========== */
+function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelector('.tab[data-tab="' + tab + '"]').classList.add('active');
+    document.getElementById('tab-' + tab).classList.add('active');
+}
+
+/* ========== TIMER ========== */
+let timer = { total: 0, remaining: 0, interval: null, running: false };
+function startTimer() {
+    if (timer.running) return;
+    if (timer.remaining === 0) {
+        const m = parseInt(document.getElementById('timerMin').value, 10) || 0;
+        const s = parseInt(document.getElementById('timerSec').value, 10) || 0;
+        timer.total = m * 60 + s;
+        timer.remaining = timer.total;
+    }
+    if (timer.remaining <= 0) { alert('Введи время'); return; }
+    timer.running = true;
+    timer.interval = setInterval(() => {
+        timer.remaining--;
+        updateTimerDisplay();
+        if (timer.remaining <= 0) {
+            clearInterval(timer.interval);
+            timer.running = false;
+            playAlarmSound();
+            if (Notification && Notification.permission === 'granted') {
+                new Notification('⏳ DOSS OS', { body: 'Таймер завершён!' });
+            } else {
+                alert('⏳ Таймер завершён!');
+            }
+        }
+    }, 1000);
+    updateTimerDisplay();
+}
+function pauseTimer() {
+    if (timer.interval) clearInterval(timer.interval);
+    timer.running = false;
+}
+function resetTimer() {
+    if (timer.interval) clearInterval(timer.interval);
+    timer = { total: 0, remaining: 0, interval: null, running: false };
+    updateTimerDisplay();
+}
+function updateTimerDisplay() {
+    const el = document.getElementById('timerDisplay');
+    if (!el) return;
+    const t = timer.remaining;
+    el.textContent = pad(Math.floor(t / 3600)) + ':' + pad(Math.floor((t % 3600) / 60)) + ':' + pad(t % 60);
+}
+
+/* ========== STOPWATCH ========== */
+let sw = { start: 0, elapsed: 0, interval: null, running: false, laps: [] };
+function startStopwatch() {
+    if (sw.running) return;
+    sw.running = true;
+    sw.start = Date.now() - sw.elapsed;
+    sw.interval = setInterval(() => {
+        sw.elapsed = Date.now() - sw.start;
+        updateSwDisplay();
+    }, 30);
+}
+function pauseStopwatch() {
+    if (sw.interval) clearInterval(sw.interval);
+    sw.running = false;
+}
+function resetStopwatch() {
+    if (sw.interval) clearInterval(sw.interval);
+    sw = { start: 0, elapsed: 0, interval: null, running: false, laps: [] };
+    updateSwDisplay();
+    document.getElementById('lapsList').innerHTML = '';
+}
+function lapStopwatch() {
+    if (sw.elapsed === 0) return;
+    sw.laps.push(sw.elapsed);
+    renderLaps();
+}
+function updateSwDisplay() {
+    const el = document.getElementById('stopwatchDisplay');
+    if (!el) return;
+    const t = sw.elapsed;
+    const h = Math.floor(t / 3600000);
+    const m = Math.floor((t % 3600000) / 60000);
+    const s = Math.floor((t % 60000) / 1000);
+    const ms = Math.floor((t % 1000) / 10);
+    el.textContent = pad(h) + ':' + pad(m) + ':' + pad(s) + '.' + pad(ms);
+}
+function renderLaps() {
+    const el = document.getElementById('lapsList');
+    if (!el) return;
+    if (!sw.laps.length) { el.innerHTML = ''; return; }
+    el.innerHTML = sw.laps.map((lap, i) => {
+        const h = Math.floor(lap / 3600000);
+        const m = Math.floor((lap % 3600000) / 60000);
+        const s = Math.floor((lap % 60000) / 1000);
+        const ms = Math.floor((lap % 1000) / 10);
+        return '<div class="item"><div class="item-main"><div class="item-title">Круг ' + (i+1) + '</div></div><div style="font-variant-numeric:tabular-nums;">' + pad(h) + ':' + pad(m) + ':' + pad(s) + '.' + pad(ms) + '</div></div>';
+    }).join('');
+}
+
+/* ========== NOTIFICATIONS ========== */
+function requestNotifPermission() {
+    if (!('Notification' in window)) return;
+    if (Notification.permission === 'default') Notification.requestPermission();
 }
 
 /* ========== TASKS ========== */
@@ -515,11 +746,9 @@ function addNote() {
     const inp = document.getElementById('noteTitle');
     const title = inp.value.trim();
     if (!title) return;
-    const note = { id: uid(), title, body: '', createdAt: Date.now() };
-    DB.notes.unshift(note);
+    DB.notes.unshift({ id: uid(), title, body: '', createdAt: Date.now() });
     inp.value = '';
     save(); render();
-    editNote(note.id);
 }
 function editNote(id) {
     const n = DB.notes.find(x => x.id === id);
@@ -570,13 +799,16 @@ function delEvent(id) {
 function addContact() {
     const name = document.getElementById('contactName').value.trim();
     const phone = document.getElementById('contactPhone').value.trim();
-    if (!name) return;
-    DB.contacts.unshift({ id: uid(), name, phone, createdAt: Date.now() });
-    document.getElementById('contactName').value = '';
-    document.getElementById('contactPhone').value = '';
+    const email = document.getElementById('contactEmail').value.trim();
+    const telegram = document.getElementById('contactTelegram').value.trim().replace('@', '');
+    const note = document.getElementById('contactNote').value.trim();
+    if (!name) { alert('Введи имя'); return; }
+    DB.contacts.unshift({ id: uid(), name, phone, email, telegram, note, createdAt: Date.now() });
+    ['contactName','contactPhone','contactEmail','contactTelegram','contactNote'].forEach(id => document.getElementById(id).value = '');
     save(); render();
 }
 function delContact(id) {
+    if (!confirm('Удалить контакт?')) return;
     DB.contacts = DB.contacts.filter(x => x.id !== id);
     save(); render();
 }
@@ -674,127 +906,179 @@ function importData() {
 }
 function resetAll() {
     if (!confirm('Удалить ВСЕ данные DOSS OS?')) return;
-    DB = { tasks: [], notes: [], diary: [], events: [], contacts: [], finance: [], bookmarks: [], theme: DB.theme };
+    DB = { tasks: [], notes: [], diary: [], events: [], contacts: [], finance: [], bookmarks: [], alarms: [], theme: DB.theme };
     save(); render();
 }
 
 /* ========== RENDER ========== */
-function escapeHtml(s) {
-    return String(s || '').replace(/[&<>"]/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[m]));
-}
-function fmtDate(ts) {
-    return new Date(ts).toLocaleDateString('ru-RU', { day:'numeric', month:'short' });
-}
 function render() {
     // Dashboard
-    document.getElementById('dashDate').textContent = new Date().toLocaleDateString('ru-RU', { day:'numeric', month:'long' });
-    document.getElementById('dashTasks').textContent = DB.tasks.filter(t => !t.done).length;
-    document.getElementById('dashNotes').textContent = DB.notes.length;
+    const dd = document.getElementById('dashDate');
+    if (dd) dd.textContent = new Date().toLocaleDateString('ru-RU', { day:'numeric', month:'long' });
+    const dt = document.getElementById('dashTasks');
+    if (dt) dt.textContent = DB.tasks.filter(t => !t.done).length;
+    const dn = document.getElementById('dashNotes');
+    if (dn) dn.textContent = DB.notes.length;
+    const dct = document.getElementById('dashContacts');
+    if (dct) dct.textContent = DB.contacts.length;
     const balance = DB.finance.reduce((s, f) => s + (f.type === 'income' ? f.amount : -f.amount), 0);
-    document.getElementById('dashBalance').textContent = balance.toFixed(2);
-    document.getElementById('hello').textContent = 'Привет! Это твоя персональная система.';
+    const db = document.getElementById('dashBalance');
+    if (db) db.textContent = balance.toFixed(2);
+    const hello = document.getElementById('hello');
+    if (hello) hello.textContent = 'Привет! Это твоя персональная система.';
+
+    // Alarms
+    const al = document.getElementById('alarmsList');
+    if (al) {
+        if (!DB.alarms.length) al.innerHTML = '<div class="empty">Будильников нет. Добавь первый.</div>';
+        else {
+            const sorted = DB.alarms.slice().sort((a, b) => a.time.localeCompare(b.time));
+            al.innerHTML = sorted.map(a =>
+                '<div class="item alarm-item">' +
+                    '<input type="checkbox" class="check" ' + (a.enabled ? 'checked' : '') + ' onchange="toggleAlarm(\'' + a.id + '\')">' +
+                    '<div class="item-main"><div class="item-title">' + escapeHtml(a.time) + '</div>' +
+                    (a.label ? '<div class="item-sub">' + escapeHtml(a.label) + '</div>' : '') +
+                    '</div>' +
+                    '<button class="btn btn-sm btn-danger" onclick="delAlarm(\'' + a.id + '\')">✕</button>' +
+                '</div>'
+            ).join('');
+        }
+    }
 
     // Tasks
     const tl = document.getElementById('tasksList');
-    if (!DB.tasks.length) tl.innerHTML = '<div class="empty">Пока пусто. Добавь первую задачу.</div>';
-    else tl.innerHTML = DB.tasks.map(t =>
-        '<div class="item ' + (t.done ? 'done' : '') + '">' +
-            '<input type="checkbox" class="check" ' + (t.done ? 'checked' : '') + ' onchange="toggleTask(\'' + t.id + '\')">' +
-            '<div class="item-main"><div class="item-title">' + escapeHtml(t.text) + '</div>' +
-            '<div class="item-sub">' + fmtDate(t.createdAt) + '</div></div>' +
-            '<button class="btn btn-sm btn-danger" onclick="delTask(\'' + t.id + '\')">✕</button>' +
-        '</div>'
-    ).join('');
+    if (tl) {
+        if (!DB.tasks.length) tl.innerHTML = '<div class="empty">Пока пусто. Добавь первую задачу.</div>';
+        else tl.innerHTML = DB.tasks.map(t =>
+            '<div class="item ' + (t.done ? 'done' : '') + '">' +
+                '<input type="checkbox" class="check" ' + (t.done ? 'checked' : '') + ' onchange="toggleTask(\'' + t.id + '\')">' +
+                '<div class="item-main"><div class="item-title">' + escapeHtml(t.text) + '</div>' +
+                '<div class="item-sub">' + fmtDate(t.createdAt) + '</div></div>' +
+                '<button class="btn btn-sm btn-danger" onclick="delTask(\'' + t.id + '\')">✕</button>' +
+            '</div>'
+        ).join('');
+    }
 
     // Notes
     const nl = document.getElementById('notesList');
-    if (!DB.notes.length) nl.innerHTML = '<div class="card"><div class="empty">Заметок нет.</div></div>';
-    else nl.innerHTML = DB.notes.map(n =>
-        '<div class="card">' +
-            '<div style="display:flex;justify-content:space-between;gap:8px;">' +
-                '<strong>' + escapeHtml(n.title) + '</strong>' +
-                '<div style="display:flex;gap:4px;">' +
-                    '<button class="btn btn-sm" onclick="editNote(\'' + n.id + '\')">✏️</button>' +
-                    '<button class="btn btn-sm btn-danger" onclick="delNote(\'' + n.id + '\')">✕</button>' +
+    if (nl) {
+        if (!DB.notes.length) nl.innerHTML = '<div class="card"><div class="empty">Заметок нет.</div></div>';
+        else nl.innerHTML = DB.notes.map(n =>
+            '<div class="card">' +
+                '<div style="display:flex;justify-content:space-between;gap:8px;">' +
+                    '<strong>' + escapeHtml(n.title) + '</strong>' +
+                    '<div style="display:flex;gap:4px;">' +
+                        '<button class="btn btn-sm" onclick="editNote(\'' + n.id + '\')">✏️</button>' +
+                        '<button class="btn btn-sm btn-danger" onclick="delNote(\'' + n.id + '\')">✕</button>' +
+                    '</div>' +
                 '</div>' +
-            '</div>' +
-            (n.body ? '<div style="margin-top:8px;color:var(--muted);white-space:pre-wrap;">' + escapeHtml(n.body) + '</div>' : '') +
-            '<div class="item-sub" style="margin-top:6px;">' + fmtDate(n.createdAt) + '</div>' +
-        '</div>'
-    ).join('');
+                (n.body ? '<div style="margin-top:8px;color:var(--muted);white-space:pre-wrap;">' + escapeHtml(n.body) + '</div>' : '') +
+                '<div class="item-sub" style="margin-top:6px;">' + fmtDate(n.createdAt) + '</div>' +
+            '</div>'
+        ).join('');
+    }
 
     // Diary
     const dl = document.getElementById('diaryList');
-    if (!DB.diary.length) dl.innerHTML = '<div class="empty">Записей нет.</div>';
-    else dl.innerHTML = DB.diary.map(d =>
-        '<div class="item">' +
-            '<div style="font-size:1.4rem;">' + (d.mood >= 8 ? '😄' : d.mood >= 5 ? '🙂' : '😔') + '</div>' +
-            '<div class="item-main"><div class="item-title">' + escapeHtml(d.text) + '</div>' +
-            '<div class="item-sub">' + fmtDate(d.createdAt) + ' · настроение ' + d.mood + '/10</div></div>' +
-            '<button class="btn btn-sm btn-danger" onclick="delDiary(\'' + d.id + '\')">✕</button>' +
-        '</div>'
-    ).join('');
+    if (dl) {
+        if (!DB.diary.length) dl.innerHTML = '<div class="empty">Записей нет.</div>';
+        else dl.innerHTML = DB.diary.map(d =>
+            '<div class="item">' +
+                '<div style="font-size:1.4rem;">' + (d.mood >= 8 ? '😄' : d.mood >= 5 ? '🙂' : '😔') + '</div>' +
+                '<div class="item-main"><div class="item-title">' + escapeHtml(d.text) + '</div>' +
+                '<div class="item-sub">' + fmtDate(d.createdAt) + ' · настроение ' + d.mood + '/10</div></div>' +
+                '<button class="btn btn-sm btn-danger" onclick="delDiary(\'' + d.id + '\')">✕</button>' +
+            '</div>'
+        ).join('');
+    }
 
     // Calendar
     const cl = document.getElementById('calendarList');
-    const sortedEvents = DB.events.slice().sort((a, b) => a.date.localeCompare(b.date));
-    if (!sortedEvents.length) cl.innerHTML = '<div class="empty">Событий нет.</div>';
-    else cl.innerHTML = sortedEvents.map(e =>
-        '<div class="item">' +
-            '<div style="font-weight:700;color:var(--accent);">' + escapeHtml(e.date) + '</div>' +
-            '<div class="item-main"><div class="item-title">' + escapeHtml(e.title) + '</div></div>' +
-            '<button class="btn btn-sm btn-danger" onclick="delEvent(\'' + e.id + '\')">✕</button>' +
-        '</div>'
-    ).join('');
+    if (cl) {
+        const sortedEvents = DB.events.slice().sort((a, b) => a.date.localeCompare(b.date));
+        if (!sortedEvents.length) cl.innerHTML = '<div class="empty">Событий нет.</div>';
+        else cl.innerHTML = sortedEvents.map(e =>
+            '<div class="item">' +
+                '<div style="font-weight:700;color:var(--accent);">' + escapeHtml(e.date) + '</div>' +
+                '<div class="item-main"><div class="item-title">' + escapeHtml(e.title) + '</div></div>' +
+                '<button class="btn btn-sm btn-danger" onclick="delEvent(\'' + e.id + '\')">✕</button>' +
+            '</div>'
+        ).join('');
+    }
 
-    // Contacts
+    // Contacts — с кнопками Позвонить / SMS / Email / Telegram
     const ct = document.getElementById('contactsList');
-    if (!DB.contacts.length) ct.innerHTML = '<div class="empty">Контактов нет.</div>';
-    else ct.innerHTML = DB.contacts.map(c =>
-        '<div class="item">' +
-            '<div class="item-main"><div class="item-title">' + escapeHtml(c.name) + '</div>' +
-            (c.phone ? '<div class="item-sub">📞 ' + escapeHtml(c.phone) + '</div>' : '') +
-            '</div>' +
-            '<button class="btn btn-sm btn-danger" onclick="delContact(\'' + c.id + '\')">✕</button>' +
-        '</div>'
-    ).join('');
+    if (ct) {
+        if (!DB.contacts.length) ct.innerHTML = '<div class="empty">Контактов нет. Добавь первый — появится кнопка «Позвонить».</div>';
+        else ct.innerHTML = DB.contacts.map(c => {
+            const tel = (c.phone || '').replace(/[^\d+]/g, '');
+            const actions = [];
+            if (tel) {
+                actions.push('<a class="call" href="tel:' + escapeHtml(tel) + '">📞 Позвонить</a>');
+                actions.push('<a href="sms:' + escapeHtml(tel) + '">💬 SMS</a>');
+                actions.push('<a href="https://wa.me/' + escapeHtml(tel.replace('+','')) + '" target="_blank" rel="noopener">🟢 WhatsApp</a>');
+            }
+            if (c.email) actions.push('<a href="mailto:' + escapeHtml(c.email) + '">✉️ Email</a>');
+            if (c.telegram) actions.push('<a href="https://t.me/' + escapeHtml(c.telegram) + '" target="_blank" rel="noopener">✈️ Telegram</a>');
+
+            return '<div class="item" style="flex-direction:column;align-items:stretch;">' +
+                '<div style="display:flex;align-items:center;gap:10px;">' +
+                    '<div style="width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;">' + escapeHtml((c.name || '?').charAt(0).toUpperCase()) + '</div>' +
+                    '<div class="item-main">' +
+                        '<div class="item-title" style="font-weight:600;">' + escapeHtml(c.name) + '</div>' +
+                        (c.phone ? '<div class="item-sub">📞 ' + escapeHtml(c.phone) + '</div>' : '') +
+                        (c.email ? '<div class="item-sub">✉️ ' + escapeHtml(c.email) + '</div>' : '') +
+                        (c.note ? '<div class="item-sub">📝 ' + escapeHtml(c.note) + '</div>' : '') +
+                    '</div>' +
+                    '<button class="btn btn-sm btn-danger" onclick="delContact(\'' + c.id + '\')">✕</button>' +
+                '</div>' +
+                (actions.length ? '<div class="contact-actions">' + actions.join('') + '</div>' : '') +
+            '</div>';
+        }).join('');
+    }
 
     // Finance
-    document.getElementById('finBalance').textContent = balance.toFixed(2);
+    const finBal = document.getElementById('finBalance');
+    if (finBal) finBal.textContent = balance.toFixed(2);
     const fl = document.getElementById('financeList');
-    if (!DB.finance.length) fl.innerHTML = '<div class="empty">Операций нет.</div>';
-    else fl.innerHTML = DB.finance.map(f =>
-        '<div class="item">' +
-            '<div style="font-weight:700;color:' + (f.type === 'income' ? 'var(--success)' : 'var(--danger)') + ';min-width:80px;">' +
-                (f.type === 'income' ? '+' : '−') + f.amount.toFixed(2) +
-            '</div>' +
-            '<div class="item-main"><div class="item-title">' + escapeHtml(f.note || '—') + '</div>' +
-            '<div class="item-sub">' + fmtDate(f.createdAt) + '</div></div>' +
-            '<button class="btn btn-sm btn-danger" onclick="delFinance(\'' + f.id + '\')">✕</button>' +
-        '</div>'
-    ).join('');
+    if (fl) {
+        if (!DB.finance.length) fl.innerHTML = '<div class="empty">Операций нет.</div>';
+        else fl.innerHTML = DB.finance.map(f =>
+            '<div class="item">' +
+                '<div style="font-weight:700;color:' + (f.type === 'income' ? 'var(--success)' : 'var(--danger)') + ';min-width:80px;">' +
+                    (f.type === 'income' ? '+' : '−') + f.amount.toFixed(2) +
+                '</div>' +
+                '<div class="item-main"><div class="item-title">' + escapeHtml(f.note || '—') + '</div>' +
+                '<div class="item-sub">' + fmtDate(f.createdAt) + '</div></div>' +
+                '<button class="btn btn-sm btn-danger" onclick="delFinance(\'' + f.id + '\')">✕</button>' +
+            '</div>'
+        ).join('');
+    }
 
     // Bookmarks
     const bl = document.getElementById('bookmarksList');
-    if (!DB.bookmarks.length) bl.innerHTML = '<div class="empty">Закладок нет.</div>';
-    else bl.innerHTML = DB.bookmarks.map(b =>
-        '<div class="item">' +
-            '<div class="item-main"><div class="item-title">' + escapeHtml(b.title) + '</div>' +
-            '<div class="item-sub"><a href="' + escapeHtml(b.url) + '" target="_blank" rel="noopener" style="color:var(--accent);">' + escapeHtml(b.url) + '</a></div></div>' +
-            '<button class="btn btn-sm btn-danger" onclick="delBookmark(\'' + b.id + '\')">✕</button>' +
-        '</div>'
-    ).join('');
+    if (bl) {
+        if (!DB.bookmarks.length) bl.innerHTML = '<div class="empty">Закладок нет.</div>';
+        else bl.innerHTML = DB.bookmarks.map(b =>
+            '<div class="item">' +
+                '<div class="item-main"><div class="item-title">' + escapeHtml(b.title) + '</div>' +
+                '<div class="item-sub"><a href="' + escapeHtml(b.url) + '" target="_blank" rel="noopener" style="color:var(--accent);">' + escapeHtml(b.url) + '</a></div></div>' +
+                '<button class="btn btn-sm btn-danger" onclick="delBookmark(\'' + b.id + '\')">✕</button>' +
+            '</div>'
+        ).join('');
+    }
 }
 
 /* ========== INIT ========== */
 document.addEventListener('DOMContentLoaded', () => {
     applyTheme();
     buildCalc();
-    // default date = today
-    document.getElementById('calDate').value = new Date().toISOString().slice(0, 10);
+    const cd = document.getElementById('calDate');
+    if (cd) cd.value = new Date().toISOString().slice(0, 10);
     render();
-    tickClock();
-    setInterval(tickClock, 30000);
+    tickAll();
+    setInterval(tickAll, 1000);
+    setTimeout(requestNotifPermission, 2000);
 });
 </script>
 </body>
