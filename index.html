@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DOSS OS — Personal Operating System</title>
+<meta name="theme-color" content="#1877f2">
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<!-- Firebase SDK (compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
 <style>
 :root {
     --bg: #f0f2f5; --card: #ffffff; --text: #1c1e21; --muted: #65676b;
@@ -18,41 +28,74 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: var(--bg); color: var(--text); min-height: 100vh; transition: background 0.2s;
+    background: var(--bg); color: var(--text); min-height: 100vh;
+    transition: background 0.2s;
 }
 button, input, textarea, select { font-family: inherit; font-size: inherit; color: inherit; }
 button { cursor: pointer; }
 
-.app {
-    display: grid; grid-template-columns: 240px 1fr;
-    grid-template-rows: 56px 1fr;
-    grid-template-areas: "top top" "side main";
-    min-height: 100vh;
+/* ===== LOGIN SCREEN ===== */
+.login-screen {
+    position: fixed; inset: 0; z-index: 9999;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center; padding: 20px;
 }
-.topbar {
-    grid-area: top; display: flex; align-items: center; justify-content: space-between;
+.login-screen.hidden { display: none; }
+.login-box {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 40px 32px;
+    max-width: 400px; width: 100%; text-align: center;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+}
+.login-logo { font-size: 4rem; margin-bottom: 12px; }
+.login-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 8px; }
+.login-subtitle { color: var(--muted); margin-bottom: 32px; font-size: 0.95rem; }
+.login-btn {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; padding: 14px;
+    background: var(--card); color: var(--text);
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-size: 1rem; font-weight: 600;
+    transition: 0.15s;
+}
+.login-btn:hover { background: var(--hover); }
+.login-btn .g-icon { font-size: 1.2rem; }
+
+/* ===== APP ===== */
+.app { display: none; }
+.app.visible { display: grid; grid-template-columns: 240px 1fr;
+    grid-template-rows: 56px 1fr; grid-template-areas: "top top" "side main";
+    min-height: 100vh; }
+
+.topbar { grid-area: top; display: flex; align-items: center; justify-content: space-between;
     padding: 0 16px; background: var(--card); border-bottom: 1px solid var(--border);
-    position: sticky; top: 0; z-index: 100;
-}
+    position: sticky; top: 0; z-index: 100; }
 .topbar-left, .topbar-right { display: flex; align-items: center; gap: 12px; }
 .burger { display: none; cursor: pointer; font-size: 1.2rem; }
 .brand { font-weight: 700; font-size: 1rem; }
 .clock { font-size: 0.85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .icon-btn { background: none; border: none; font-size: 1.1rem; padding: 4px 6px; border-radius: var(--radius-sm); }
 .icon-btn:hover { background: var(--hover); }
+.user-chip { display: flex; align-items: center; gap: 8px;
+    padding: 4px 12px 4px 4px; border-radius: 999px;
+    background: var(--hover); }
+.user-chip img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+.user-chip .letter { width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent); color: #fff; display: flex;
+    align-items: center; justify-content: center; font-weight: 600; font-size: 0.85rem; }
+.user-chip .uname { font-size: 0.85rem; font-weight: 600; max-width: 100px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.logout-btn { background: none; border: none; padding: 4px 8px;
+    color: var(--muted); font-size: 0.85rem; border-radius: var(--radius-sm); }
+.logout-btn:hover { background: var(--hover); color: var(--danger); }
 
-.sidebar {
-    grid-area: side; background: var(--card); border-right: 1px solid var(--border);
-    padding: 12px 8px; overflow-y: auto;
-}
+.sidebar { grid-area: side; background: var(--card); border-right: 1px solid var(--border);
+    padding: 12px 8px; overflow-y: auto; }
 .nav { display: flex; flex-direction: column; gap: 2px; }
-.nav-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 12px; border-radius: var(--radius-sm);
-    color: var(--text); text-decoration: none; font-size: 0.9rem;
-    transition: 0.15s; border: none; background: none; text-align: left;
-    width: 100%; cursor: pointer;
-}
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    border-radius: var(--radius-sm); color: var(--text); text-decoration: none;
+    font-size: 0.9rem; transition: 0.15s; border: none; background: none;
+    text-align: left; width: 100%; cursor: pointer; }
 .nav-item:hover { background: var(--hover); }
 .nav-item.active { background: var(--accent); color: #fff; }
 
@@ -61,39 +104,34 @@ button { cursor: pointer; }
 .view.active { display: block; }
 h1 { font-size: 1.5rem; margin-bottom: 16px; }
 
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
-.card {
-    background: var(--card); border: 1px solid var(--border);
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px; margin-bottom: 16px; }
+.card { background: var(--card); border: 1px solid var(--border);
     border-radius: var(--radius); padding: 14px 16px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-bottom: 12px;
-}
-.card-title { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-bottom: 12px; }
+.card-title { font-size: 0.8rem; color: var(--muted); text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 6px; }
 .card-value { font-size: 1.5rem; font-weight: 700; }
 
 .row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-.input, .textarea, .select {
-    flex: 1; min-width: 0; padding: 10px 12px;
+.input, .textarea, .select { flex: 1; min-width: 0; padding: 10px 12px;
     background: var(--input); border: 1px solid var(--border);
-    border-radius: var(--radius-sm); color: var(--text); outline: none;
-}
+    border-radius: var(--radius-sm); color: var(--text); outline: none; }
 .input:focus, .textarea:focus { border-color: var(--accent); }
 .textarea { min-height: 80px; resize: vertical; }
-.btn {
-    padding: 10px 16px; border-radius: var(--radius-sm);
+.btn { padding: 10px 16px; border-radius: var(--radius-sm);
     border: 1px solid var(--border); background: var(--card);
-    color: var(--text); font-weight: 600; font-size: 0.85rem; transition: 0.15s;
-}
+    color: var(--text); font-weight: 600; font-size: 0.85rem; transition: 0.15s; }
 .btn:hover { background: var(--hover); }
 .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
 .btn-primary:hover { opacity: 0.9; }
 .btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
 .btn-success { background: var(--success); color: #fff; border-color: var(--success); }
+.btn-warning { background: var(--warning); color: #fff; border-color: var(--warning); }
 .btn-sm { padding: 6px 10px; font-size: 0.75rem; }
 
-.item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 12px; border-bottom: 1px solid var(--border);
-}
+.item { display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    border-bottom: 1px solid var(--border); }
 .item:last-child { border-bottom: none; }
 .item-main { flex: 1; min-width: 0; }
 .item-title { font-size: 0.9rem; }
@@ -102,96 +140,120 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; }
 .check { width: 20px; height: 20px; cursor: pointer; accent-color: var(--accent); }
 .empty { text-align: center; padding: 20px; color: var(--muted); font-size: 0.85rem; }
 
-/* CONTACTS */
 .contact-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
-.contact-actions a {
-    display: inline-flex; align-items: center; gap: 4px;
+.contact-actions a { display: inline-flex; align-items: center; gap: 4px;
     padding: 6px 12px; border-radius: var(--radius-sm);
     font-size: 0.75rem; text-decoration: none; font-weight: 600;
     border: 1px solid var(--border); background: var(--card); color: var(--text);
-    transition: 0.15s;
-}
+    transition: 0.15s; }
 .contact-actions a:hover { background: var(--hover); }
 .contact-actions a.call { background: var(--success); color: #fff; border-color: var(--success); }
-.contact-actions a.call:hover { opacity: 0.9; }
 
-/* ALARMS */
-.clock-big {
-    font-size: 4rem; font-weight: 700; text-align: center;
-    font-variant-numeric: tabular-nums; padding: 20px 0;
-    letter-spacing: 2px;
-}
+.clock-big { font-size: 4rem; font-weight: 700; text-align: center;
+    font-variant-numeric: tabular-nums; padding: 20px 0; letter-spacing: 2px; }
 .clock-date { text-align: center; color: var(--muted); font-size: 1rem; margin-bottom: 20px; }
 .tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
-.tab {
-    padding: 8px 16px; border-radius: var(--radius-sm);
+.tab { padding: 8px 16px; border-radius: var(--radius-sm);
     border: 1px solid var(--border); background: var(--card);
-    color: var(--text); font-size: 0.85rem; cursor: pointer;
-}
+    color: var(--text); font-size: 0.85rem; cursor: pointer; }
 .tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 .tab-content { display: none; }
 .tab-content.active { display: block; }
-.timer-display {
-    font-size: 3rem; font-weight: 700; text-align: center;
-    font-variant-numeric: tabular-nums; padding: 20px 0;
-}
-.alarm-item .item-title { font-weight: 600; font-size: 1.1rem; }
+.timer-display { font-size: 3rem; font-weight: 700; text-align: center;
+    font-variant-numeric: tabular-nums; padding: 20px 0; }
 
-/* CALCULATOR */
-.calc-display {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 16px; margin-bottom: 12px; text-align: right;
-}
+.cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.cal-title { font-size: 1.2rem; font-weight: 700; text-transform: capitalize; }
+.cal-weekdays, .cal-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-weekdays div { text-align: center; font-size: 0.75rem; color: var(--muted);
+    padding: 6px 0; font-weight: 600; text-transform: uppercase; }
+.cal-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    cursor: pointer; font-size: 0.85rem; padding: 4px; transition: 0.15s; position: relative; }
+.cal-day:hover { background: var(--hover); }
+.cal-day.other { color: var(--muted); opacity: 0.4; }
+.cal-day.today { background: var(--accent); color: #fff; font-weight: 700; }
+.cal-day.selected { border-color: var(--accent); border-width: 2px; }
+.cal-day .dot { position: absolute; bottom: 3px; width: 5px; height: 5px;
+    border-radius: 50%; background: var(--warning); }
+
+.calc-display { background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px; margin-bottom: 12px; text-align: right; }
 .calc-expr { font-size: 0.9rem; color: var(--muted); min-height: 1.2em; }
 .calc-result { font-size: 1.8rem; font-weight: 700; margin-top: 6px; }
 .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; max-width: 420px; }
-.calc-btn {
-    padding: 14px 0; font-size: 1rem;
+.calc-btn { padding: 14px 0; font-size: 1rem;
     border: 1px solid var(--border); background: var(--card);
-    color: var(--text); border-radius: var(--radius-sm); cursor: pointer;
-    transition: 0.15s;
-}
+    color: var(--text); border-radius: var(--radius-sm); cursor: pointer; transition: 0.15s; }
 .calc-btn:hover { background: var(--hover); }
 .calc-btn.op { color: var(--accent); font-weight: 600; }
 .calc-btn.eq { background: var(--accent); color: #fff; border-color: var(--accent); }
 .calc-btn.fn { color: var(--danger); }
 
-.modal {
-    display: none; position: fixed; inset: 0;
+.chart-wrap { position: relative; height: 300px; width: 100%; margin-top: 8px; }
+
+.modal { display: none; position: fixed; inset: 0;
     background: rgba(0,0,0,0.5); z-index: 1000;
-    align-items: center; justify-content: center; padding: 16px;
-}
+    align-items: center; justify-content: center; padding: 16px; }
 .modal.open { display: flex; }
-.modal-box {
-    background: var(--card); border-radius: var(--radius);
-    padding: 20px; max-width: 480px; width: 100%;
-    max-height: 90vh; overflow-y: auto;
-}
+.modal-box { background: var(--card); border-radius: var(--radius);
+    padding: 20px; max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto; }
 .modal-box h3 { margin-bottom: 12px; }
 .modal-box .row { flex-direction: column; }
 .modal-box .input, .modal-box .textarea { width: 100%; }
 
 .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 90; }
 .overlay.show { display: block; }
+
+.loading-screen { position: fixed; inset: 0; background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 16px; z-index: 10000; }
+.loading-screen.hidden { display: none; }
+.spinner { width: 40px; height: 40px; border: 3px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
 @media (max-width: 768px) {
-    .app { grid-template-columns: 1fr; grid-template-areas: "top" "main"; }
-    .sidebar {
-        position: fixed; top: 56px; left: 0; bottom: 0;
-        width: 260px; transform: translateX(-100%);
-        transition: transform 0.25s; z-index: 95;
-    }
+    .app.visible { grid-template-columns: 1fr; grid-template-areas: "top" "main"; }
+    .sidebar { position: fixed; top: 56px; left: 0; bottom: 0; width: 260px;
+        transform: translateX(-100%); transition: transform 0.25s; z-index: 95; }
     .sidebar.open { transform: translateX(0); }
     .burger { display: inline; }
     .clock { display: none; }
     .main { padding: 12px; }
     .clock-big { font-size: 2.8rem; }
     .timer-display { font-size: 2.2rem; }
+    .user-chip .uname { display: none; }
 }
 </style>
 </head>
 <body>
 
-<div class="app">
+<!-- LOADING -->
+<div class="loading-screen" id="loadingScreen">
+    <div class="spinner"></div>
+    <div style="color:var(--muted);font-size:0.9rem;">Загрузка DOSS OS…</div>
+</div>
+
+<!-- LOGIN -->
+<div class="login-screen hidden" id="loginScreen">
+    <div class="login-box">
+        <div class="login-logo">🧠</div>
+        <div class="login-title">DOSS OS</div>
+        <div class="login-subtitle">Персональная операционная система</div>
+        <button class="login-btn" onclick="signInWithGoogle()">
+            <span class="g-icon">🔑</span>
+            Войти через Google
+        </button>
+        <div style="margin-top:16px;font-size:0.75rem;color:var(--muted);">
+            Твои данные защищены и видны только тебе
+        </div>
+    </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
 
     <header class="topbar">
         <div class="topbar-left">
@@ -202,6 +264,11 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; }
             <span class="clock" id="clock"></span>
             <button class="icon-btn" onclick="toggleTheme()" title="Тема">🌓</button>
             <button class="icon-btn" onclick="openSettingsModal()" title="Настройки">⚙️</button>
+            <div class="user-chip" id="userChip">
+                <span class="letter">?</span>
+                <span class="uname">User</span>
+            </div>
+            <button class="logout-btn" onclick="signOutUser()" title="Выйти">🚪</button>
         </div>
     </header>
 
@@ -209,17 +276,16 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; }
         <nav class="nav">
             <button class="nav-item active" data-view="dashboard">🏠 Dashboard</button>
             <button class="nav-item" data-view="alarms">⏰ Alarms & Time</button>
+            <button class="nav-item" data-view="calendar">📅 Calendar</button>
             <button class="nav-item" data-view="tasks">✅ Tasks</button>
             <button class="nav-item" data-view="notes">📝 Notes</button>
             <button class="nav-item" data-view="diary">📔 Diary</button>
-            <button class="nav-item" data-view="calendar">📅 Calendar</button>
-            <button class="nav-item" data-view="contacts">👤 Contacts</button>
+            <button class="nav-item" data-view="contacts">📞 Contacts</button>
             <button class="nav-item" data-view="finance">💰 Finance</button>
+            <button class="nav-item" data-view="bookmaker">🎯 Bookmaker</button>
+            <button class="nav-item" data-view="analytics">📊 Analytics</button>
             <button class="nav-item" data-view="bookmarks">🔖 Bookmarks</button>
             <button class="nav-item" data-view="calculator">🧮 Calculator</button>
-            <button class="nav-item" data-view="charts">📊 Charts</button>
-            <button class="nav-item" data-view="files">📁 Files</button>
-            <button class="nav-item" data-view="notifications">🔔 Notifications</button>
         </nav>
     </aside>
 
@@ -246,7 +312,7 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; }
                     <button class="btn" onclick="show('tasks')">✅ Новая задача</button>
                     <button class="btn" onclick="show('notes')">📝 Новая заметка</button>
                     <button class="btn" onclick="show('contacts')">📞 Позвонить</button>
-                    <button class="btn" onclick="show('calculator')">🧮 Калькулятор</button>
+                    <button class="btn" onclick="show('analytics')">📊 Графики</button>
                 </div>
             </div>
         </section>
@@ -254,12 +320,10 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; }
         <!-- ALARMS & TIME -->
         <section class="view" id="view-alarms">
             <h1>⏰ Часы, будильник, таймер</h1>
-
             <div class="card">
                 <div class="clock-big" id="bigClock">00:00:00</div>
                 <div class="clock-date" id="bigDate"></div>
             </div>
-
             <div class="tabs">
                 <button class="tab active" data-tab="alarm" onclick="switchTab('alarm')">🔔 Будильник</button>
                 <button class="tab" data-tab="timer" onclick="switchTab('timer')">⏳ Таймер</button>
@@ -267,7 +331,6 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; }
                 <button class="tab" data-tab="worldclock" onclick="switchTab('worldclock')">🌍 Мировое время</button>
             </div>
 
-            <!-- ALARM -->
             <div class="tab-content active" id="tab-alarm">
                 <div class="row">
                     <input class="input" type="time" id="alarmTime" style="max-width:160px;">
@@ -277,7 +340,6 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; }
                 <div class="card" id="alarmsList"></div>
             </div>
 
-            <!-- TIMER -->
             <div class="tab-content" id="tab-timer">
                 <div class="card">
                     <div class="timer-display" id="timerDisplay">00:00:00</div>
@@ -293,7 +355,6 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; }
                 </div>
             </div>
 
-            <!-- STOPWATCH -->
             <div class="tab-content" id="tab-stopwatch">
                 <div class="card">
                     <div class="timer-display" id="stopwatchDisplay">00:00:00.00</div>
@@ -307,7 +368,6 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; }
                 </div>
             </div>
 
-            <!-- WORLD CLOCK -->
             <div class="tab-content" id="tab-worldclock">
                 <div class="card">
                     <div class="item"><div class="item-main"><div class="item-title">🇷🇺 Москва</div></div><div id="wc-moscow" style="font-weight:700;font-variant-numeric:tabular-nums;"></div></div>
@@ -316,9 +376,30 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; }
                     <div class="item"><div class="item-main"><div class="item-title">🇺🇸 Нью-Йорк</div></div><div id="wc-ny" style="font-weight:700;font-variant-numeric:tabular-nums;"></div></div>
                     <div class="item"><div class="item-main"><div class="item-title">🇯🇵 Токио</div></div><div id="wc-tokyo" style="font-weight:700;font-variant-numeric:tabular-nums;"></div></div>
                     <div class="item"><div class="item-main"><div class="item-title">🇦🇪 Дубай</div></div><div id="wc-dubai" style="font-weight:700;font-variant-numeric:tabular-nums;"></div></div>
-                    <div class="item"><div class="item-main"><div class="item-title">🇺🇸 Лос-Анджелес</div></div><div id="wc-la" style="font-weight:700;font-variant-numeric:tabular-nums;"></div></div>
-                    <div class="item"><div class="item-main"><div class="item-title">🇦🇺 Сидней</div></div><div id="wc-sydney" style="font-weight:700;font-variant-numeric:tabular-nums;"></div></div>
                 </div>
+            </div>
+        </section>
+
+        <!-- CALENDAR -->
+        <section class="view" id="view-calendar">
+            <h1>📅 Calendar</h1>
+            <div class="card">
+                <div class="cal-header">
+                    <button class="btn btn-sm" onclick="calPrev()">← Пред</button>
+                    <div class="cal-title" id="calTitle"></div>
+                    <button class="btn btn-sm" onclick="calNext()">След →</button>
+                </div>
+                <div class="cal-weekdays"><div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div></div>
+                <div class="cal-days" id="calDays"></div>
+            </div>
+            <div class="card">
+                <div class="card-title" id="calSelectedDate">Выбери день</div>
+                <div class="row" style="margin-top:8px;">
+                    <input class="input" id="calEventTitle" placeholder="Событие">
+                    <input class="input" type="time" id="calEventTime" style="max-width:130px;">
+                    <button class="btn btn-primary" onclick="addEvent()">+ Добавить</button>
+                </div>
+                <div id="calEventsList"></div>
             </div>
         </section>
 
@@ -361,29 +442,18 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; }
             <div class="card" id="diaryList"></div>
         </section>
 
-        <!-- CALENDAR -->
-        <section class="view" id="view-calendar">
-            <h1>📅 Calendar</h1>
-            <div class="row">
-                <input class="input" type="date" id="calDate">
-                <input class="input" id="calTitle" placeholder="Событие">
-                <button class="btn btn-primary" onclick="addEvent()">+ Событие</button>
-            </div>
-            <div class="card" id="calendarList"></div>
-        </section>
-
         <!-- CONTACTS -->
         <section class="view" id="view-contacts">
-            <h1>👤 Записная книжка</h1>
+            <h1>📞 Записная книжка</h1>
             <div class="row">
                 <input class="input" id="contactName" placeholder="Имя">
-                <input class="input" id="contactPhone" placeholder="Телефон (например +380...)">
+                <input class="input" id="contactPhone" placeholder="+380...">
                 <button class="btn btn-primary" onclick="addContact()">+ Добавить</button>
             </div>
             <div class="row">
-                <input class="input" id="contactEmail" placeholder="Email (необязательно)">
-                <input class="input" id="contactTelegram" placeholder="Telegram (@ник, необязательно)">
-                <input class="input" id="contactNote" placeholder="Заметка (необязательно)">
+                <input class="input" id="contactEmail" placeholder="Email">
+                <input class="input" id="contactTelegram" placeholder="Telegram (@ник)">
+                <input class="input" id="contactNote" placeholder="Заметка">
             </div>
             <div class="card" id="contactsList"></div>
         </section>
@@ -400,18 +470,97 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; }
                     <option value="income">💰 Доход</option>
                     <option value="expense">💸 Расход</option>
                 </select>
-                <input class="input" id="finAmount" type="number" placeholder="Сумма" style="max-width:120px;">
+                <select class="select" id="finCategory" style="max-width:160px;">
+                    <option value="work">💻 Работа</option>
+                    <option value="home">🏠 Дом</option>
+                    <option value="food">🍔 Еда</option>
+                    <option value="transport">🚗 Транспорт</option>
+                    <option value="fun">🎮 Развлечения</option>
+                    <option value="health">🏥 Здоровье</option>
+                    <option value="subs">📱 Подписки</option>
+                    <option value="edu">🎓 Образование</option>
+                    <option value="gifts">🎁 Подарки</option>
+                    <option value="travel">✈️ Путешествия</option>
+                    <option value="bet">🎯 Ставки</option>
+                    <option value="other">📦 Другое</option>
+                </select>
+                <input class="input" id="finAmount" type="number" placeholder="Сумма" style="max-width:110px;">
                 <input class="input" id="finNote" placeholder="Комментарий">
                 <button class="btn btn-primary" onclick="addFinance()">+ Добавить</button>
             </div>
             <div class="card" id="financeList"></div>
         </section>
 
+        <!-- BOOKMAKER -->
+        <section class="view" id="view-bookmaker">
+            <h1>🎯 Bookmaker</h1>
+            <div class="grid">
+                <div class="card"><div class="card-title">Всего ставок</div><div class="card-value" id="bmTotal">0</div></div>
+                <div class="card"><div class="card-title">Выиграно</div><div class="card-value" id="bmWon" style="color:var(--success)">0</div></div>
+                <div class="card"><div class="card-title">Проиграно</div><div class="card-value" id="bmLost" style="color:var(--danger)">0</div></div>
+                <div class="card"><div class="card-title">P&L</div><div class="card-value" id="bmPL">0</div></div>
+            </div>
+            <div class="row">
+                <input class="input" id="bmEvent" placeholder="Событие (напр. Реал - Барса)">
+                <input class="input" id="bmBet" placeholder="Ставка (напр. П1)">
+            </div>
+            <div class="row">
+                <input class="input" id="bmAmount" type="number" placeholder="Сумма" style="max-width:110px;">
+                <input class="input" id="bmOdds" type="number" placeholder="Коэф" step="0.01" style="max-width:110px;">
+                <select class="select" id="bmStatus" style="max-width:150px;">
+                    <option value="pending">⏳ В процессе</option>
+                    <option value="won">✅ Выиграл</option>
+                    <option value="lost">❌ Проиграл</option>
+                    <option value="void">↩️ Возврат</option>
+                </select>
+                <button class="btn btn-primary" onclick="addBet()">+ Добавить</button>
+            </div>
+            <div class="card" id="betsList"></div>
+        </section>
+
+        <!-- ANALYTICS -->
+        <section class="view" id="view-analytics">
+            <h1>📊 Analytics</h1>
+            <div class="grid">
+                <div class="card"><div class="card-title">💵 Доход (30 дней)</div><div class="card-value" id="anIncome" style="color:var(--success)">0</div></div>
+                <div class="card"><div class="card-title">💸 Расход (30 дней)</div><div class="card-value" id="anExpense" style="color:var(--danger)">0</div></div>
+                <div class="card"><div class="card-title">💼 Баланс</div><div class="card-value" id="anBalance">0</div></div>
+                <div class="card"><div class="card-title">✅ Задач (30 дней)</div><div class="card-value" id="anTasks">0</div></div>
+                <div class="card"><div class="card-title">🎯 P&L ставок</div><div class="card-value" id="anBetPL">0</div></div>
+                <div class="card"><div class="card-title">⭐ Индекс жизни</div><div class="card-value" id="anLifeIndex">—</div></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">💰 Доходы vs Расходы (12 месяцев)</div>
+                <div class="chart-wrap"><canvas id="chartFinance"></canvas></div>
+            </div>
+            <div class="card">
+                <div class="card-title">🥧 Расходы по категориям</div>
+                <div class="chart-wrap"><canvas id="chartCategories"></canvas></div>
+            </div>
+            <div class="card">
+                <div class="card-title">📈 Накопленный баланс (30 дней)</div>
+                <div class="chart-wrap"><canvas id="chartBalance"></canvas></div>
+            </div>
+            <div class="card">
+                <div class="card-title">✅ Задачи выполнено (14 дней)</div>
+                <div class="chart-wrap"><canvas id="chartTasks"></canvas></div>
+            </div>
+            <div class="card">
+                <div class="card-title">📔 Настроение (30 дней)</div>
+                <div class="chart-wrap"><canvas id="chartMood"></canvas></div>
+            </div>
+            <div class="card">
+                <div class="card-title">🎯 Кривая P&L ставок</div>
+                <div class="chart-wrap"><canvas id="chartBets"></canvas></div>
+            </div>
+        </section>
+
         <!-- BOOKMARKS -->
         <section class="view" id="view-bookmarks">
             <h1>🔖 Bookmarks</h1>
             <div class="row">
-                <input class="input" id="bmTitle" placeholder="Название">
+                <input class="input" id="bmTitleInput" placeholder="Название">
                 <input class="input" id="bmUrl" placeholder="https://...">
                 <button class="btn btn-primary" onclick="addBookmark()">+ Добавить</button>
             </div>
@@ -428,23 +577,10 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; }
             <div class="calc-grid" id="calcGrid"></div>
         </section>
 
-        <!-- STUBS -->
-        <section class="view" id="view-charts">
-            <h1>📊 Charts</h1>
-            <div class="card"><p style="color:var(--muted);">Модуль в разработке.</p></div>
-        </section>
-        <section class="view" id="view-files">
-            <h1>📁 Files</h1>
-            <div class="card"><p style="color:var(--muted);">Модуль в разработке.</p></div>
-        </section>
-        <section class="view" id="view-notifications">
-            <h1>🔔 Notifications</h1>
-            <div class="card"><p style="color:var(--muted);">Модуль в разработке.</p></div>
-        </section>
-
     </main>
 </div>
 
+<!-- SETTINGS MODAL -->
 <div class="modal" id="settingsModal">
     <div class="modal-box">
         <h3>⚙️ Настройки</h3>
@@ -462,36 +598,145 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; }
 
 <script>
 /* ================================================================
- * DOSS OS — STANDALONE v2
- * + Часы, будильник, таймер, секундомер, мировое время
- * + Записная книжка с кнопками Позвонить / SMS / Email / Telegram
+ * DOSS OS — Firebase Edition
+ * Google Auth + Realtime Database + Analytics
  * ================================================================ */
 
-const KEY = 'doss_v2';
-let DB = load();
+/* ===== FIREBASE CONFIG ===== */
+const firebaseConfig = {
+    apiKey: "AIzaSyC5L2GQ-2CYj-GNYsHENASdvKVF68rsEb0",
+    authDomain: "metaimperiya-14d1b.firebaseapp.com",
+    databaseURL: "https://metaimperiya-14d1b-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "metaimperiya-14d1b",
+    storageBucket: "metaimperiya-14d1b.firebasestorage.app",
+    messagingSenderId: "415206276902",
+    appId: "1:415206276902:web:1e38287b922191eac00be7"
+};
 
-function load() {
-    try {
-        const raw = localStorage.getItem(KEY);
-        if (raw) return JSON.parse(raw);
-    } catch(e) {}
-    return {
-        tasks: [], notes: [], diary: [], events: [],
-        contacts: [], finance: [], bookmarks: [], alarms: [],
-        theme: 'light'
-    };
-}
-function save() { localStorage.setItem(KEY, JSON.stringify(DB)); }
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.database();
+const provider = new firebase.auth.GoogleAuthProvider();
+
+/* ===== STATE ===== */
+let USER = null;
+let USER_UID = null;
+let DB = { tasks: [], notes: [], diary: [], events: [], contacts: [],
+           finance: [], bookmarks: [], alarms: [], bets: [], theme: 'light' };
+let dbRef = null;
+let syncing = false;
+
+/* ===== HELPERS ===== */
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
-function escapeHtml(s) {
-    return String(s || '').replace(/[&<>"]/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[m]));
-}
+function escapeHtml(s) { return String(s || '').replace(/[&<>"]/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[m])); }
 function fmtDate(ts) { return new Date(ts).toLocaleDateString('ru-RU', { day:'numeric', month:'short' }); }
 function pad(n) { return n < 10 ? '0' + n : '' + n; }
-function pad2(n) { return n < 10 ? '0' + n : '' + n; }
 
-/* ========== ROUTER ========== */
-function show(view) {
+/* ===== AUTH ===== */
+window.signInWithGoogle = function() {
+    auth.signInWithPopup(provider).catch(err => {
+        console.error('Login error:', err);
+        if (err.code === 'auth/popup-blocked') alert('Браузер заблокировал попап. Разреши всплывающие окна.');
+        else if (err.code === 'auth/unauthorized-domain') alert('Домен не авторизован в Firebase. Добавь его в Authentication → Settings → Authorized domains.');
+        else alert('Ошибка входа: ' + err.message);
+    });
+};
+
+window.signOutUser = function() {
+    if (!confirm('Выйти из DOSS OS?')) return;
+    if (dbRef) { dbRef.off(); dbRef = null; }
+    auth.signOut();
+};
+
+auth.onAuthStateChanged(user => {
+    document.getElementById('loadingScreen').classList.add('hidden');
+
+    if (user) {
+        USER = user.displayName || user.email || 'User';
+        USER_UID = user.uid;
+        console.log('✅ DOSS: вошёл', USER, USER_UID);
+
+        // Update user chip
+        const chip = document.getElementById('userChip');
+        const letter = USER.charAt(0).toUpperCase();
+        if (user.photoURL) {
+            chip.innerHTML = '<img src="' + user.photoURL + '" alt=""><span class="uname">' + escapeHtml(USER) + '</span>';
+        } else {
+            chip.innerHTML = '<span class="letter">' + letter + '</span><span class="uname">' + escapeHtml(USER) + '</span>';
+        }
+
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('app').classList.add('visible');
+
+        // Load data from Firebase
+        loadFromFirebase();
+    } else {
+        console.log('DOSS: гость');
+        USER = null;
+        USER_UID = null;
+        document.getElementById('loginScreen').classList.remove('hidden');
+        document.getElementById('app').classList.remove('visible');
+    }
+});
+
+/* ===== FIREBASE DATA ===== */
+function loadFromFirebase() {
+    if (!USER_UID) return;
+    dbRef = db.ref('doss/users/' + USER_UID);
+
+    dbRef.once('value').then(snapshot => {
+        const data = snapshot.val();
+        if (data) {
+            DB = Object.assign(DB, data);
+        } else {
+            // First time — save empty
+            dbRef.set(DB);
+        }
+        applyTheme();
+        render();
+        // Subscribe to real-time updates
+        dbRef.on('value', snap => {
+            const val = snap.val();
+            if (val && !syncing) {
+                DB = Object.assign(DB, val);
+                render();
+                if (document.getElementById('view-analytics').classList.contains('active')) {
+                    renderAnalytics();
+                }
+            }
+        });
+    }).catch(err => {
+        console.error('Firebase load error:', err);
+        alert('Ошибка загрузки данных. Проверь Rules в Firebase.');
+    });
+}
+
+function saveToFirebase() {
+    if (!USER_UID || !dbRef) return;
+    syncing = true;
+    dbRef.set(DB).then(() => {
+        setTimeout(() => { syncing = false; }, 200);
+    }).catch(err => {
+        syncing = false;
+        console.error('Firebase save error:', err);
+    });
+}
+
+/* ===== THEME ===== */
+function toggleTheme() {
+    DB.theme = DB.theme === 'dark' ? 'light' : 'dark';
+    applyTheme();
+    saveToFirebase();
+    if (document.getElementById('view-analytics').classList.contains('active')) {
+        setTimeout(renderAnalytics, 100);
+    }
+}
+function applyTheme() {
+    document.documentElement.setAttribute('data-theme', DB.theme || 'light');
+}
+
+/* ===== NAVIGATION ===== */
+window.show = function(view) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     const v = document.getElementById('view-' + view);
@@ -500,70 +745,48 @@ function show(view) {
     if (n) n.classList.add('active');
     closeSidebar();
     render();
-}
+    if (view === 'analytics') setTimeout(renderAnalytics, 100);
+    if (view === 'calendar') renderCalendar();
+};
+
 document.querySelectorAll('.nav-item').forEach(n => {
     n.addEventListener('click', () => show(n.dataset.view));
 });
 
-function toggleSidebar() {
+window.toggleSidebar = function() {
     document.getElementById('sidebar').classList.toggle('open');
     document.getElementById('overlay').classList.toggle('show');
-}
-function closeSidebar() {
+};
+window.closeSidebar = function() {
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('overlay').classList.remove('show');
-}
+};
 
-/* ========== THEME ========== */
-function toggleTheme() {
-    DB.theme = DB.theme === 'dark' ? 'light' : 'dark';
-    applyTheme(); save();
-}
-function applyTheme() {
-    document.documentElement.setAttribute('data-theme', DB.theme || 'light');
-}
-
-/* ========== CLOCK / TIME ========== */
+/* ===== CLOCK ===== */
 function tickAll() {
     const d = new Date();
-    // topbar
     const c = document.getElementById('clock');
-    if (c) c.textContent = d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU');
-    // dashboard
+    if (c) c.textContent = d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'});
     const dt = document.getElementById('dashTime');
     if (dt) dt.textContent = d.toLocaleTimeString('ru-RU');
-    // big clock
     const bc = document.getElementById('bigClock');
     if (bc) bc.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
     const bd = document.getElementById('bigDate');
     if (bd) bd.textContent = d.toLocaleDateString('ru-RU', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 
-    // world clock
     const zones = [
-        ['wc-moscow', 'Europe/Moscow'],
-        ['wc-kiev', 'Europe/Kiev'],
-        ['wc-london', 'Europe/London'],
-        ['wc-ny', 'America/New_York'],
-        ['wc-tokyo', 'Asia/Tokyo'],
-        ['wc-dubai', 'Asia/Dubai'],
-        ['wc-la', 'America/Los_Angeles'],
-        ['wc-sydney', 'Australia/Sydney']
+        ['wc-moscow','Europe/Moscow'], ['wc-kiev','Europe/Kiev'], ['wc-london','Europe/London'],
+        ['wc-ny','America/New_York'], ['wc-tokyo','Asia/Tokyo'], ['wc-dubai','Asia/Dubai']
     ];
     zones.forEach(([id, tz]) => {
         const el = document.getElementById(id);
-        if (el) {
-            try {
-                el.textContent = d.toLocaleTimeString('ru-RU', { timeZone: tz, hour:'2-digit', minute:'2-digit', second:'2-digit' });
-            } catch(e) { el.textContent = '—'; }
-        }
+        if (el) { try { el.textContent = d.toLocaleTimeString('ru-RU', { timeZone: tz, hour:'2-digit', minute:'2-digit', second:'2-digit' }); } catch(e){} }
     });
-
     checkAlarms(d);
 }
 
-/* ========== ALARMS ========== */
+/* ===== ALARMS ===== */
 let lastAlarmCheck = '';
-
 function addAlarm() {
     const time = document.getElementById('alarmTime').value;
     const label = document.getElementById('alarmLabel').value.trim();
@@ -571,52 +794,45 @@ function addAlarm() {
     DB.alarms.push({ id: uid(), time, label, enabled: true, createdAt: Date.now() });
     document.getElementById('alarmTime').value = '';
     document.getElementById('alarmLabel').value = '';
-    save(); render();
-    requestNotifPermission();
+    saveToFirebase(); render(); requestNotifPermission();
 }
 function toggleAlarm(id) {
     const a = DB.alarms.find(x => x.id === id);
-    if (a) { a.enabled = !a.enabled; save(); render(); }
+    if (a) { a.enabled = !a.enabled; saveToFirebase(); render(); }
 }
-function delAlarm(id) {
-    DB.alarms = DB.alarms.filter(x => x.id !== id);
-    save(); render();
-}
+function delAlarm(id) { DB.alarms = DB.alarms.filter(x => x.id !== id); saveToFirebase(); render(); }
 function checkAlarms(d) {
     const now = pad(d.getHours()) + ':' + pad(d.getMinutes());
     if (now === lastAlarmCheck) return;
     lastAlarmCheck = now;
-    let fired = false;
     DB.alarms.forEach(a => {
         if (a.enabled && a.time === now) {
-            fired = true;
             playAlarmSound();
             if (Notification && Notification.permission === 'granted') {
                 new Notification('⏰ DOSS OS', { body: a.label || 'Будильник: ' + a.time });
-            } else {
-                alert('⏰ Будильник: ' + (a.label || a.time));
-            }
+            } else alert('⏰ Будильник: ' + (a.label || a.time));
         }
     });
-    if (fired) save();
 }
 function playAlarmSound() {
     try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
         [0, 0.3, 0.6].forEach(t => {
-            const o = ctx.createOscillator();
-            const g = ctx.createGain();
+            const o = ctx.createOscillator(); const g = ctx.createGain();
             o.connect(g); g.connect(ctx.destination);
             o.frequency.value = 880;
             g.gain.setValueAtTime(0.3, ctx.currentTime + t);
             g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.25);
-            o.start(ctx.currentTime + t);
-            o.stop(ctx.currentTime + t + 0.25);
+            o.start(ctx.currentTime + t); o.stop(ctx.currentTime + t + 0.25);
         });
     } catch(e) {}
 }
+function requestNotifPermission() {
+    if (!('Notification' in window)) return;
+    if (Notification.permission === 'default') Notification.requestPermission();
+}
 
-/* ========== TABS ========== */
+/* ===== TABS ===== */
 function switchTab(tab) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -624,178 +840,157 @@ function switchTab(tab) {
     document.getElementById('tab-' + tab).classList.add('active');
 }
 
-/* ========== TIMER ========== */
+/* ===== TIMER ===== */
 let timer = { total: 0, remaining: 0, interval: null, running: false };
 function startTimer() {
     if (timer.running) return;
     if (timer.remaining === 0) {
         const m = parseInt(document.getElementById('timerMin').value, 10) || 0;
         const s = parseInt(document.getElementById('timerSec').value, 10) || 0;
-        timer.total = m * 60 + s;
-        timer.remaining = timer.total;
+        timer.total = m * 60 + s; timer.remaining = timer.total;
     }
     if (timer.remaining <= 0) { alert('Введи время'); return; }
     timer.running = true;
     timer.interval = setInterval(() => {
-        timer.remaining--;
-        updateTimerDisplay();
+        timer.remaining--; updateTimerDisplay();
         if (timer.remaining <= 0) {
-            clearInterval(timer.interval);
-            timer.running = false;
+            clearInterval(timer.interval); timer.running = false;
             playAlarmSound();
-            if (Notification && Notification.permission === 'granted') {
-                new Notification('⏳ DOSS OS', { body: 'Таймер завершён!' });
-            } else {
-                alert('⏳ Таймер завершён!');
-            }
+            if (Notification && Notification.permission === 'granted') new Notification('⏳ DOSS OS', { body: 'Таймер завершён!' });
+            else alert('⏳ Таймер завершён!');
         }
     }, 1000);
     updateTimerDisplay();
 }
-function pauseTimer() {
-    if (timer.interval) clearInterval(timer.interval);
-    timer.running = false;
-}
-function resetTimer() {
-    if (timer.interval) clearInterval(timer.interval);
-    timer = { total: 0, remaining: 0, interval: null, running: false };
-    updateTimerDisplay();
-}
+function pauseTimer() { if (timer.interval) clearInterval(timer.interval); timer.running = false; }
+function resetTimer() { if (timer.interval) clearInterval(timer.interval); timer = { total: 0, remaining: 0, interval: null, running: false }; updateTimerDisplay(); }
 function updateTimerDisplay() {
-    const el = document.getElementById('timerDisplay');
-    if (!el) return;
+    const el = document.getElementById('timerDisplay'); if (!el) return;
     const t = timer.remaining;
     el.textContent = pad(Math.floor(t / 3600)) + ':' + pad(Math.floor((t % 3600) / 60)) + ':' + pad(t % 60);
 }
 
-/* ========== STOPWATCH ========== */
+/* ===== STOPWATCH ===== */
 let sw = { start: 0, elapsed: 0, interval: null, running: false, laps: [] };
 function startStopwatch() {
     if (sw.running) return;
-    sw.running = true;
-    sw.start = Date.now() - sw.elapsed;
-    sw.interval = setInterval(() => {
-        sw.elapsed = Date.now() - sw.start;
-        updateSwDisplay();
-    }, 30);
+    sw.running = true; sw.start = Date.now() - sw.elapsed;
+    sw.interval = setInterval(() => { sw.elapsed = Date.now() - sw.start; updateSwDisplay(); }, 30);
 }
-function pauseStopwatch() {
-    if (sw.interval) clearInterval(sw.interval);
-    sw.running = false;
-}
+function pauseStopwatch() { if (sw.interval) clearInterval(sw.interval); sw.running = false; }
 function resetStopwatch() {
     if (sw.interval) clearInterval(sw.interval);
     sw = { start: 0, elapsed: 0, interval: null, running: false, laps: [] };
-    updateSwDisplay();
-    document.getElementById('lapsList').innerHTML = '';
+    updateSwDisplay(); document.getElementById('lapsList').innerHTML = '';
 }
-function lapStopwatch() {
-    if (sw.elapsed === 0) return;
-    sw.laps.push(sw.elapsed);
-    renderLaps();
-}
+function lapStopwatch() { if (sw.elapsed === 0) return; sw.laps.push(sw.elapsed); renderLaps(); }
 function updateSwDisplay() {
-    const el = document.getElementById('stopwatchDisplay');
-    if (!el) return;
+    const el = document.getElementById('stopwatchDisplay'); if (!el) return;
     const t = sw.elapsed;
-    const h = Math.floor(t / 3600000);
-    const m = Math.floor((t % 3600000) / 60000);
-    const s = Math.floor((t % 60000) / 1000);
-    const ms = Math.floor((t % 1000) / 10);
+    const h = Math.floor(t / 3600000), m = Math.floor((t % 3600000) / 60000), s = Math.floor((t % 60000) / 1000), ms = Math.floor((t % 1000) / 10);
     el.textContent = pad(h) + ':' + pad(m) + ':' + pad(s) + '.' + pad(ms);
 }
 function renderLaps() {
-    const el = document.getElementById('lapsList');
-    if (!el) return;
-    if (!sw.laps.length) { el.innerHTML = ''; return; }
+    const el = document.getElementById('lapsList'); if (!el) return;
     el.innerHTML = sw.laps.map((lap, i) => {
-        const h = Math.floor(lap / 3600000);
-        const m = Math.floor((lap % 3600000) / 60000);
-        const s = Math.floor((lap % 60000) / 1000);
-        const ms = Math.floor((lap % 1000) / 10);
+        const h = Math.floor(lap / 3600000), m = Math.floor((lap % 3600000) / 60000), s = Math.floor((lap % 60000) / 1000), ms = Math.floor((lap % 1000) / 10);
         return '<div class="item"><div class="item-main"><div class="item-title">Круг ' + (i+1) + '</div></div><div style="font-variant-numeric:tabular-nums;">' + pad(h) + ':' + pad(m) + ':' + pad(s) + '.' + pad(ms) + '</div></div>';
     }).join('');
 }
 
-/* ========== NOTIFICATIONS ========== */
-function requestNotifPermission() {
-    if (!('Notification' in window)) return;
-    if (Notification.permission === 'default') Notification.requestPermission();
+/* ===== CALENDAR ===== */
+let calDate = new Date();
+let calSelected = new Date().toISOString().slice(0, 10);
+function renderCalendar() {
+    const title = document.getElementById('calTitle'); if (!title) return;
+    const y = calDate.getFullYear(), m = calDate.getMonth();
+    title.textContent = calDate.toLocaleDateString('ru-RU', { month:'long', year:'numeric' });
+    const first = new Date(y, m, 1);
+    const startDay = (first.getDay() + 6) % 7;
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+    const prevMonthDays = new Date(y, m, 0).getDate();
+    const today = new Date().toISOString().slice(0, 10);
+    const days = [];
+    for (let i = startDay - 1; i >= 0; i--) days.push({ day: prevMonthDays - i, other: true, date: new Date(y, m - 1, prevMonthDays - i) });
+    for (let d = 1; d <= daysInMonth; d++) days.push({ day: d, other: false, date: new Date(y, m, d) });
+    const remaining = (7 - (days.length % 7)) % 7;
+    for (let d = 1; d <= remaining; d++) days.push({ day: d, other: true, date: new Date(y, m + 1, d) });
+    document.getElementById('calDays').innerHTML = days.map(d => {
+        const iso = d.date.toISOString().slice(0, 10);
+        const hasEvent = DB.events.some(e => e.date === iso);
+        const cls = 'cal-day' + (d.other ? ' other' : '') + (iso === today ? ' today' : '') + (iso === calSelected ? ' selected' : '');
+        return '<div class="' + cls + '" onclick="selectCalDay(\'' + iso + '\')">' + d.day + (hasEvent ? '<div class="dot"></div>' : '') + '</div>';
+    }).join('');
+    renderCalEvents();
 }
+function calPrev() { calDate.setMonth(calDate.getMonth() - 1); renderCalendar(); }
+function calNext() { calDate.setMonth(calDate.getMonth() + 1); renderCalendar(); }
+function selectCalDay(iso) { calSelected = iso; renderCalendar(); }
+function renderCalEvents() {
+    const titleEl = document.getElementById('calSelectedDate');
+    if (titleEl) titleEl.textContent = '📅 ' + new Date(calSelected).toLocaleDateString('ru-RU', { weekday:'long', day:'numeric', month:'long' });
+    const list = document.getElementById('calEventsList'); if (!list) return;
+    const events = DB.events.filter(e => e.date === calSelected).sort((a, b) => (a.time||'').localeCompare(b.time||''));
+    if (!events.length) { list.innerHTML = '<div class="empty">Событий нет.</div>'; return; }
+    list.innerHTML = events.map(e =>
+        '<div class="item">' +
+            (e.time ? '<div style="font-weight:700;color:var(--accent);min-width:55px;">' + escapeHtml(e.time) + '</div>' : '') +
+            '<div class="item-main"><div class="item-title">' + escapeHtml(e.title) + '</div></div>' +
+            '<button class="btn btn-sm btn-danger" onclick="delEvent(\'' + e.id + '\')">✕</button>' +
+        '</div>'
+    ).join('');
+}
+function addEvent() {
+    const title = document.getElementById('calEventTitle').value.trim();
+    const time = document.getElementById('calEventTime').value;
+    if (!title) return;
+    DB.events.push({ id: uid(), date: calSelected, time, title, createdAt: Date.now() });
+    document.getElementById('calEventTitle').value = '';
+    document.getElementById('calEventTime').value = '';
+    saveToFirebase(); renderCalendar();
+}
+function delEvent(id) { DB.events = DB.events.filter(x => x.id !== id); saveToFirebase(); renderCalendar(); }
 
-/* ========== TASKS ========== */
+/* ===== TASKS ===== */
 function addTask() {
     const inp = document.getElementById('taskInput');
-    const text = inp.value.trim();
-    if (!text) return;
+    const text = inp.value.trim(); if (!text) return;
     DB.tasks.unshift({ id: uid(), text, done: false, createdAt: Date.now() });
-    inp.value = '';
-    save(); render();
+    inp.value = ''; saveToFirebase(); render();
 }
 function toggleTask(id) {
     const t = DB.tasks.find(x => x.id === id);
-    if (t) { t.done = !t.done; save(); render(); }
+    if (t) { t.done = !t.done; t.doneAt = t.done ? Date.now() : null; saveToFirebase(); render(); }
 }
-function delTask(id) {
-    DB.tasks = DB.tasks.filter(x => x.id !== id);
-    save(); render();
-}
+function delTask(id) { DB.tasks = DB.tasks.filter(x => x.id !== id); saveToFirebase(); render(); }
 
-/* ========== NOTES ========== */
+/* ===== NOTES ===== */
 function addNote() {
     const inp = document.getElementById('noteTitle');
-    const title = inp.value.trim();
-    if (!title) return;
+    const title = inp.value.trim(); if (!title) return;
     DB.notes.unshift({ id: uid(), title, body: '', createdAt: Date.now() });
-    inp.value = '';
-    save(); render();
+    inp.value = ''; saveToFirebase(); render();
+    setTimeout(() => editNote(DB.notes[0].id), 100);
 }
 function editNote(id) {
-    const n = DB.notes.find(x => x.id === id);
-    if (!n) return;
-    const newTitle = prompt('Заголовок:', n.title);
-    if (newTitle === null) return;
-    const newBody = prompt('Текст:', n.body);
-    if (newBody === null) return;
-    n.title = newTitle.trim() || n.title;
-    n.body = newBody;
-    save(); render();
+    const n = DB.notes.find(x => x.id === id); if (!n) return;
+    const newTitle = prompt('Заголовок:', n.title); if (newTitle === null) return;
+    const newBody = prompt('Текст:', n.body); if (newBody === null) return;
+    n.title = newTitle.trim() || n.title; n.body = newBody;
+    saveToFirebase(); render();
 }
-function delNote(id) {
-    if (!confirm('Удалить заметку?')) return;
-    DB.notes = DB.notes.filter(x => x.id !== id);
-    save(); render();
-}
+function delNote(id) { if (!confirm('Удалить?')) return; DB.notes = DB.notes.filter(x => x.id !== id); saveToFirebase(); render(); }
 
-/* ========== DIARY ========== */
+/* ===== DIARY ===== */
 function addDiary() {
     const mood = parseInt(document.getElementById('diaryMood').value, 10) || 5;
-    const text = document.getElementById('diaryText').value.trim();
-    if (!text) return;
+    const text = document.getElementById('diaryText').value.trim(); if (!text) return;
     DB.diary.unshift({ id: uid(), mood, text, createdAt: Date.now() });
-    document.getElementById('diaryText').value = '';
-    save(); render();
+    document.getElementById('diaryText').value = ''; saveToFirebase(); render();
 }
-function delDiary(id) {
-    DB.diary = DB.diary.filter(x => x.id !== id);
-    save(); render();
-}
+function delDiary(id) { DB.diary = DB.diary.filter(x => x.id !== id); saveToFirebase(); render(); }
 
-/* ========== CALENDAR ========== */
-function addEvent() {
-    const date = document.getElementById('calDate').value;
-    const title = document.getElementById('calTitle').value.trim();
-    if (!date || !title) return;
-    DB.events.push({ id: uid(), date, title, createdAt: Date.now() });
-    document.getElementById('calTitle').value = '';
-    save(); render();
-}
-function delEvent(id) {
-    DB.events = DB.events.filter(x => x.id !== id);
-    save(); render();
-}
-
-/* ========== CONTACTS ========== */
+/* ===== CONTACTS ===== */
 function addContact() {
     const name = document.getElementById('contactName').value.trim();
     const phone = document.getElementById('contactPhone').value.trim();
@@ -805,51 +1000,59 @@ function addContact() {
     if (!name) { alert('Введи имя'); return; }
     DB.contacts.unshift({ id: uid(), name, phone, email, telegram, note, createdAt: Date.now() });
     ['contactName','contactPhone','contactEmail','contactTelegram','contactNote'].forEach(id => document.getElementById(id).value = '');
-    save(); render();
+    saveToFirebase(); render();
 }
-function delContact(id) {
-    if (!confirm('Удалить контакт?')) return;
-    DB.contacts = DB.contacts.filter(x => x.id !== id);
-    save(); render();
-}
+function delContact(id) { if (!confirm('Удалить?')) return; DB.contacts = DB.contacts.filter(x => x.id !== id); saveToFirebase(); render(); }
 
-/* ========== FINANCE ========== */
+/* ===== FINANCE ===== */
 function addFinance() {
     const type = document.getElementById('finType').value;
+    const category = document.getElementById('finCategory').value;
     const amount = parseFloat(document.getElementById('finAmount').value);
     const note = document.getElementById('finNote').value.trim();
     if (!amount || amount <= 0) return;
-    DB.finance.unshift({ id: uid(), type, amount, note, createdAt: Date.now() });
+    DB.finance.unshift({ id: uid(), type, category, amount, note, createdAt: Date.now() });
     document.getElementById('finAmount').value = '';
     document.getElementById('finNote').value = '';
-    save(); render();
+    saveToFirebase(); render();
 }
-function delFinance(id) {
-    DB.finance = DB.finance.filter(x => x.id !== id);
-    save(); render();
-}
+function delFinance(id) { DB.finance = DB.finance.filter(x => x.id !== id); saveToFirebase(); render(); }
 
-/* ========== BOOKMARKS ========== */
+/* ===== BOOKMAKER ===== */
+function addBet() {
+    const event = document.getElementById('bmEvent').value.trim();
+    const bet = document.getElementById('bmBet').value.trim();
+    const amount = parseFloat(document.getElementById('bmAmount').value);
+    const odds = parseFloat(document.getElementById('bmOdds').value);
+    const status = document.getElementById('bmStatus').value;
+    if (!event || !amount || !odds) { alert('Заполни событие, сумму и коэф'); return; }
+    DB.bets.unshift({ id: uid(), event, bet, amount, odds, status, createdAt: Date.now() });
+    ['bmEvent','bmBet','bmAmount','bmOdds'].forEach(id => document.getElementById(id).value = '');
+    saveToFirebase(); render();
+}
+function setBetStatus(id, status) {
+    const b = DB.bets.find(x => x.id === id); if (!b) return;
+    b.status = status; saveToFirebase(); render();
+}
+function delBet(id) { if (!confirm('Удалить?')) return; DB.bets = DB.bets.filter(x => x.id !== id); saveToFirebase(); render(); }
+
+/* ===== BOOKMARKS ===== */
 function addBookmark() {
-    const title = document.getElementById('bmTitle').value.trim();
+    const title = document.getElementById('bmTitleInput').value.trim();
     const url = document.getElementById('bmUrl').value.trim();
     if (!title || !url) return;
     DB.bookmarks.unshift({ id: uid(), title, url, createdAt: Date.now() });
-    document.getElementById('bmTitle').value = '';
+    document.getElementById('bmTitleInput').value = '';
     document.getElementById('bmUrl').value = '';
-    save(); render();
+    saveToFirebase(); render();
 }
-function delBookmark(id) {
-    DB.bookmarks = DB.bookmarks.filter(x => x.id !== id);
-    save(); render();
-}
+function delBookmark(id) { DB.bookmarks = DB.bookmarks.filter(x => x.id !== id); saveToFirebase(); render(); }
 
-/* ========== CALCULATOR ========== */
+/* ===== CALCULATOR ===== */
 let calc = { expr: '', result: '0' };
 const CALC_BUTTONS = ['C','⌫','(',')','7','8','9','/','4','5','6','*','1','2','3','-','0','.','=','+'];
 function buildCalc() {
-    const grid = document.getElementById('calcGrid');
-    grid.innerHTML = CALC_BUTTONS.map(b => {
+    document.getElementById('calcGrid').innerHTML = CALC_BUTTONS.map(b => {
         let cls = 'calc-btn';
         if ('+-*/'.includes(b)) cls += ' op';
         if (b === '=') cls += ' eq';
@@ -874,84 +1077,214 @@ function safeEval(expr) {
     } catch(e) { return 'Ошибка'; }
 }
 
-/* ========== SETTINGS MODAL ========== */
+/* ===== SETTINGS ===== */
 function openSettingsModal() { document.getElementById('settingsModal').classList.add('open'); }
 function closeSettingsModal() { document.getElementById('settingsModal').classList.remove('open'); }
 function exportData() {
     const blob = new Blob([JSON.stringify(DB, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'doss-backup-' + Date.now() + '.json';
-    a.click(); URL.revokeObjectURL(url);
+    const a = document.createElement('a'); a.href = url; a.download = 'doss-backup-' + Date.now() + '.json'; a.click();
+    URL.revokeObjectURL(url);
 }
 function importData() {
-    const inp = document.createElement('input');
-    inp.type = 'file'; inp.accept = '.json';
+    const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json';
     inp.onchange = e => {
-        const f = e.target.files[0];
-        if (!f) return;
+        const f = e.target.files[0]; if (!f) return;
         const r = new FileReader();
         r.onload = () => {
             try {
                 const data = JSON.parse(r.result);
-                if (typeof data !== 'object') throw new Error();
                 DB = Object.assign(DB, data);
-                save(); applyTheme(); render();
+                saveToFirebase(); applyTheme(); render();
                 alert('✅ Импортировано');
-            } catch(e) { alert('❌ Неверный файл'); }
+            } catch(e) { alert('❌ Ошибка'); }
         };
         r.readAsText(f);
     };
     inp.click();
 }
 function resetAll() {
-    if (!confirm('Удалить ВСЕ данные DOSS OS?')) return;
-    DB = { tasks: [], notes: [], diary: [], events: [], contacts: [], finance: [], bookmarks: [], alarms: [], theme: DB.theme };
-    save(); render();
+    if (!confirm('Удалить ВСЕ данные?')) return;
+    DB = { tasks: [], notes: [], diary: [], events: [], contacts: [], finance: [], bookmarks: [], alarms: [], bets: [], theme: DB.theme };
+    saveToFirebase(); render();
 }
 
-/* ========== RENDER ========== */
+/* ===== ANALYTICS ===== */
+let charts = {};
+function renderAnalytics() {
+    if (typeof Chart === 'undefined') return;
+
+    // Метрики
+    const now = Date.now();
+    const d30 = now - 30 * 86400000;
+    const income30 = DB.finance.filter(f => f.type === 'income' && f.createdAt >= d30).reduce((s, f) => s + f.amount, 0);
+    const expense30 = DB.finance.filter(f => f.type === 'expense' && f.createdAt >= d30).reduce((s, f) => s + f.amount, 0);
+    const balance = DB.finance.reduce((s, f) => s + (f.type === 'income' ? f.amount : -f.amount), 0);
+    const tasks30 = DB.tasks.filter(t => t.done && t.doneAt && t.doneAt >= d30).length;
+    const betPL = DB.bets.reduce((s, b) => {
+        if (b.status === 'won') return s + b.amount * (b.odds - 1);
+        if (b.status === 'lost') return s - b.amount;
+        return s;
+    }, 0);
+
+    const anI = document.getElementById('anIncome'); if (anI) anI.textContent = income30.toFixed(0);
+    const anE = document.getElementById('anExpense'); if (anE) anE.textContent = expense30.toFixed(0);
+    const anB = document.getElementById('anBalance'); if (anB) { anB.textContent = balance.toFixed(0); anB.style.color = balance >= 0 ? 'var(--success)' : 'var(--danger)'; }
+    const anT = document.getElementById('anTasks'); if (anT) anT.textContent = tasks30;
+    const anP = document.getElementById('anBetPL'); if (anP) { anP.textContent = (betPL >= 0 ? '+' : '') + betPL.toFixed(0); anP.style.color = betPL >= 0 ? 'var(--success)' : 'var(--danger)'; }
+
+    // Индекс жизни 0-100
+    let lifeIndex = 0;
+    if (balance > 0) lifeIndex += 25;
+    if (tasks30 > 10) lifeIndex += 25; else lifeIndex += tasks30 * 2.5;
+    if (DB.diary.length) {
+        const avgMood = DB.diary.slice(0, 30).reduce((s, d) => s + d.mood, 0) / Math.min(DB.diary.length, 30);
+        lifeIndex += (avgMood / 10) * 25;
+    }
+    if (betPL > 0) lifeIndex += 25; else if (betPL === 0) lifeIndex += 12;
+    const anLI = document.getElementById('anLifeIndex');
+    if (anLI) {
+        anLI.textContent = Math.round(lifeIndex) + '/100';
+        anLI.style.color = lifeIndex >= 70 ? 'var(--success)' : lifeIndex >= 40 ? 'var(--warning)' : 'var(--danger)';
+    }
+
+    // Destroy old charts
+    Object.values(charts).forEach(c => { try { c.destroy(); } catch(e){} });
+    charts = {};
+
+    const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const gridColor = dark ? '#3a3b3c' : '#e4e6eb';
+    const textColor = dark ? '#e4e6eb' : '#1c1e21';
+    const opts = (extra={}) => Object.assign({
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: textColor } } },
+        scales: { x: { ticks: { color: textColor }, grid: { color: gridColor } },
+                  y: { ticks: { color: textColor }, grid: { color: gridColor } } }
+    }, extra);
+
+    // 1) Финансы по месяцам
+    const months = [];
+    for (let i = 11; i >= 0; i--) { const d = new Date(); d.setMonth(d.getMonth() - i); months.push(d.toISOString().slice(0, 7)); }
+    const incomeByM = months.map(m => DB.finance.filter(f => f.type === 'income' && new Date(f.createdAt).toISOString().slice(0,7) === m).reduce((s, f) => s + f.amount, 0));
+    const expenseByM = months.map(m => DB.finance.filter(f => f.type === 'expense' && new Date(f.createdAt).toISOString().slice(0,7) === m).reduce((s, f) => s + f.amount, 0));
+    const mLabels = months.map(m => new Date(m + '-01').toLocaleDateString('ru-RU', { month:'short', year:'2-digit' }));
+    if (document.getElementById('chartFinance')) charts.fin = new Chart(document.getElementById('chartFinance'), {
+        type: 'bar',
+        data: { labels: mLabels, datasets: [
+            { label: 'Доходы', data: incomeByM, backgroundColor: '#27ae60' },
+            { label: 'Расходы', data: expenseByM, backgroundColor: '#e74c3c' }
+        ]}, options: opts()
+    });
+
+    // 2) Расходы по категориям
+    const cats = { work:'💻 Работа', home:'🏠 Дом', food:'🍔 Еда', transport:'🚗 Транспорт',
+                   fun:'🎮 Развлечения', health:'🏥 Здоровье', subs:'📱 Подписки',
+                   edu:'🎓 Образование', gifts:'🎁 Подарки', travel:'✈️ Путешествия',
+                   bet:'🎯 Ставки', other:'📦 Другое' };
+    const catData = {};
+    DB.finance.filter(f => f.type === 'expense').forEach(f => {
+        catData[f.category || 'other'] = (catData[f.category || 'other'] || 0) + f.amount;
+    });
+    const catLabels = Object.keys(catData).map(k => cats[k] || k);
+    const catValues = Object.values(catData);
+    if (document.getElementById('chartCategories')) charts.cat = new Chart(document.getElementById('chartCategories'), {
+        type: 'doughnut',
+        data: { labels: catLabels.length ? catLabels : ['Нет данных'], datasets: [{
+            data: catValues.length ? catValues : [1],
+            backgroundColor: ['#1877f2','#27ae60','#f39c12','#e74c3c','#9b59b6','#95a5a6','#1abc9c','#34495e','#e67e22','#c0392b','#16a085','#7f8c8d']
+        }]}, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: textColor } } } }
+    });
+
+    // 3) Накопленный баланс за 30 дней
+    const days30 = [];
+    for (let i = 29; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days30.push(d.toISOString().slice(0, 10)); }
+    let runningBalance = 0;
+    const balanceByDay = days30.map(day => {
+        DB.finance.filter(f => new Date(f.createdAt).toISOString().slice(0,10) === day).forEach(f => {
+            runningBalance += (f.type === 'income' ? f.amount : -f.amount);
+        });
+        return runningBalance;
+    });
+    const dayLabels30 = days30.map(d => new Date(d).toLocaleDateString('ru-RU', { day:'numeric', month:'short' }));
+    if (document.getElementById('chartBalance')) charts.bal = new Chart(document.getElementById('chartBalance'), {
+        type: 'line',
+        data: { labels: dayLabels30, datasets: [{ label: 'Баланс', data: balanceByDay, borderColor: '#1877f2', backgroundColor: 'rgba(24,119,242,0.15)', fill: true, tension: 0.3 }] },
+        options: opts()
+    });
+
+    // 4) Задачи за 14 дней
+    const days14 = [];
+    for (let i = 13; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days14.push(d.toISOString().slice(0, 10)); }
+    const tasksDone = days14.map(d => DB.tasks.filter(t => t.done && t.doneAt && new Date(t.doneAt).toISOString().slice(0, 10) === d).length);
+    const dayLabels14 = days14.map(d => new Date(d).toLocaleDateString('ru-RU', { day:'numeric', month:'short' }));
+    if (document.getElementById('chartTasks')) charts.tasks = new Chart(document.getElementById('chartTasks'), {
+        type: 'line',
+        data: { labels: dayLabels14, datasets: [{ label: 'Выполнено', data: tasksDone, borderColor: '#1877f2', backgroundColor: 'rgba(24,119,242,0.15)', fill: true, tension: 0.3 }] },
+        options: opts()
+    });
+
+    // 5) Настроение за 30 дней
+    const moodByDay = days30.map(d => {
+        const entries = DB.diary.filter(e => new Date(e.createdAt).toISOString().slice(0, 10) === d);
+        if (!entries.length) return null;
+        return entries.reduce((s, e) => s + e.mood, 0) / entries.length;
+    });
+    if (document.getElementById('chartMood')) charts.mood = new Chart(document.getElementById('chartMood'), {
+        type: 'line',
+        data: { labels: dayLabels30, datasets: [{ label: 'Настроение', data: moodByDay, borderColor: '#f39c12', backgroundColor: 'rgba(243,156,18,0.15)', fill: true, tension: 0.3, spanGaps: true }] },
+        options: opts({ scales: { x: { ticks: { color: textColor }, grid: { color: gridColor } },
+                                  y: { min: 0, max: 10, ticks: { color: textColor }, grid: { color: gridColor } } } })
+    });
+
+    // 6) P&L ставок
+    let pnl = 0;
+    const betPnl = DB.bets.slice().reverse().map(b => {
+        if (b.status === 'won') pnl += b.amount * (b.odds - 1);
+        else if (b.status === 'lost') pnl -= b.amount;
+        return pnl;
+    });
+    const betLabels = DB.bets.slice().reverse().map((b, i) => '#' + (i+1));
+    if (document.getElementById('chartBets')) charts.bets = new Chart(document.getElementById('chartBets'), {
+        type: 'line',
+        data: { labels: betLabels.length ? betLabels : ['—'], datasets: [{ label: 'P&L', data: betPnl.length ? betPnl : [0], borderColor: '#27ae60', backgroundColor: 'rgba(39,174,96,0.15)', fill: true, tension: 0.3 }] },
+        options: opts()
+    });
+}
+
+/* ===== RENDER ===== */
 function render() {
     // Dashboard
     const dd = document.getElementById('dashDate');
     if (dd) dd.textContent = new Date().toLocaleDateString('ru-RU', { day:'numeric', month:'long' });
-    const dt = document.getElementById('dashTasks');
-    if (dt) dt.textContent = DB.tasks.filter(t => !t.done).length;
-    const dn = document.getElementById('dashNotes');
-    if (dn) dn.textContent = DB.notes.length;
-    const dct = document.getElementById('dashContacts');
-    if (dct) dct.textContent = DB.contacts.length;
+    const dt = document.getElementById('dashTasks'); if (dt) dt.textContent = DB.tasks.filter(t => !t.done).length;
+    const dn = document.getElementById('dashNotes'); if (dn) dn.textContent = DB.notes.length;
+    const dct = document.getElementById('dashContacts'); if (dct) dct.textContent = DB.contacts.length;
     const balance = DB.finance.reduce((s, f) => s + (f.type === 'income' ? f.amount : -f.amount), 0);
-    const db = document.getElementById('dashBalance');
-    if (db) db.textContent = balance.toFixed(2);
+    const db = document.getElementById('dashBalance'); if (db) db.textContent = balance.toFixed(2);
     const hello = document.getElementById('hello');
-    if (hello) hello.textContent = 'Привет! Это твоя персональная система.';
+    if (hello) hello.textContent = 'Привет, ' + (USER || 'пользователь') + '!';
 
     // Alarms
     const al = document.getElementById('alarmsList');
     if (al) {
-        if (!DB.alarms.length) al.innerHTML = '<div class="empty">Будильников нет. Добавь первый.</div>';
-        else {
-            const sorted = DB.alarms.slice().sort((a, b) => a.time.localeCompare(b.time));
-            al.innerHTML = sorted.map(a =>
-                '<div class="item alarm-item">' +
-                    '<input type="checkbox" class="check" ' + (a.enabled ? 'checked' : '') + ' onchange="toggleAlarm(\'' + a.id + '\')">' +
-                    '<div class="item-main"><div class="item-title">' + escapeHtml(a.time) + '</div>' +
-                    (a.label ? '<div class="item-sub">' + escapeHtml(a.label) + '</div>' : '') +
-                    '</div>' +
-                    '<button class="btn btn-sm btn-danger" onclick="delAlarm(\'' + a.id + '\')">✕</button>' +
-                '</div>'
-            ).join('');
-        }
+        if (!DB.alarms.length) al.innerHTML = '<div class="empty">Будильников нет.</div>';
+        else al.innerHTML = DB.alarms.slice().sort((a,b) => a.time.localeCompare(b.time)).map(a =>
+            '<div class="item">' +
+                '<input type="checkbox" class="check" ' + (a.enabled?'checked':'') + ' onchange="toggleAlarm(\'' + a.id + '\')">' +
+                '<div class="item-main"><div class="item-title" style="font-weight:600;font-size:1.1rem;">' + escapeHtml(a.time) + '</div>' +
+                (a.label ? '<div class="item-sub">' + escapeHtml(a.label) + '</div>' : '') + '</div>' +
+                '<button class="btn btn-sm btn-danger" onclick="delAlarm(\'' + a.id + '\')">✕</button>' +
+            '</div>'
+        ).join('');
     }
 
     // Tasks
     const tl = document.getElementById('tasksList');
     if (tl) {
-        if (!DB.tasks.length) tl.innerHTML = '<div class="empty">Пока пусто. Добавь первую задачу.</div>';
+        if (!DB.tasks.length) tl.innerHTML = '<div class="empty">Задач нет.</div>';
         else tl.innerHTML = DB.tasks.map(t =>
-            '<div class="item ' + (t.done ? 'done' : '') + '">' +
-                '<input type="checkbox" class="check" ' + (t.done ? 'checked' : '') + ' onchange="toggleTask(\'' + t.id + '\')">' +
+            '<div class="item ' + (t.done?'done':'') + '">' +
+                '<input type="checkbox" class="check" ' + (t.done?'checked':'') + ' onchange="toggleTask(\'' + t.id + '\')">' +
                 '<div class="item-main"><div class="item-title">' + escapeHtml(t.text) + '</div>' +
                 '<div class="item-sub">' + fmtDate(t.createdAt) + '</div></div>' +
                 '<button class="btn btn-sm btn-danger" onclick="delTask(\'' + t.id + '\')">✕</button>' +
@@ -964,14 +1297,12 @@ function render() {
     if (nl) {
         if (!DB.notes.length) nl.innerHTML = '<div class="card"><div class="empty">Заметок нет.</div></div>';
         else nl.innerHTML = DB.notes.map(n =>
-            '<div class="card">' +
-                '<div style="display:flex;justify-content:space-between;gap:8px;">' +
-                    '<strong>' + escapeHtml(n.title) + '</strong>' +
-                    '<div style="display:flex;gap:4px;">' +
-                        '<button class="btn btn-sm" onclick="editNote(\'' + n.id + '\')">✏️</button>' +
-                        '<button class="btn btn-sm btn-danger" onclick="delNote(\'' + n.id + '\')">✕</button>' +
-                    '</div>' +
-                '</div>' +
+            '<div class="card"><div style="display:flex;justify-content:space-between;gap:8px;">' +
+                '<strong>' + escapeHtml(n.title) + '</strong>' +
+                '<div style="display:flex;gap:4px;">' +
+                    '<button class="btn btn-sm" onclick="editNote(\'' + n.id + '\')">✏️</button>' +
+                    '<button class="btn btn-sm btn-danger" onclick="delNote(\'' + n.id + '\')">✕</button>' +
+                '</div></div>' +
                 (n.body ? '<div style="margin-top:8px;color:var(--muted);white-space:pre-wrap;">' + escapeHtml(n.body) + '</div>' : '') +
                 '<div class="item-sub" style="margin-top:6px;">' + fmtDate(n.createdAt) + '</div>' +
             '</div>'
@@ -984,34 +1315,20 @@ function render() {
         if (!DB.diary.length) dl.innerHTML = '<div class="empty">Записей нет.</div>';
         else dl.innerHTML = DB.diary.map(d =>
             '<div class="item">' +
-                '<div style="font-size:1.4rem;">' + (d.mood >= 8 ? '😄' : d.mood >= 5 ? '🙂' : '😔') + '</div>' +
+                '<div style="font-size:1.4rem;">' + (d.mood>=8?'😄':d.mood>=5?'🙂':'😔') + '</div>' +
                 '<div class="item-main"><div class="item-title">' + escapeHtml(d.text) + '</div>' +
-                '<div class="item-sub">' + fmtDate(d.createdAt) + ' · настроение ' + d.mood + '/10</div></div>' +
+                '<div class="item-sub">' + fmtDate(d.createdAt) + ' · ' + d.mood + '/10</div></div>' +
                 '<button class="btn btn-sm btn-danger" onclick="delDiary(\'' + d.id + '\')">✕</button>' +
             '</div>'
         ).join('');
     }
 
-    // Calendar
-    const cl = document.getElementById('calendarList');
-    if (cl) {
-        const sortedEvents = DB.events.slice().sort((a, b) => a.date.localeCompare(b.date));
-        if (!sortedEvents.length) cl.innerHTML = '<div class="empty">Событий нет.</div>';
-        else cl.innerHTML = sortedEvents.map(e =>
-            '<div class="item">' +
-                '<div style="font-weight:700;color:var(--accent);">' + escapeHtml(e.date) + '</div>' +
-                '<div class="item-main"><div class="item-title">' + escapeHtml(e.title) + '</div></div>' +
-                '<button class="btn btn-sm btn-danger" onclick="delEvent(\'' + e.id + '\')">✕</button>' +
-            '</div>'
-        ).join('');
-    }
-
-    // Contacts — с кнопками Позвонить / SMS / Email / Telegram
+    // Contacts
     const ct = document.getElementById('contactsList');
     if (ct) {
-        if (!DB.contacts.length) ct.innerHTML = '<div class="empty">Контактов нет. Добавь первый — появится кнопка «Позвонить».</div>';
+        if (!DB.contacts.length) ct.innerHTML = '<div class="empty">Контактов нет.</div>';
         else ct.innerHTML = DB.contacts.map(c => {
-            const tel = (c.phone || '').replace(/[^\d+]/g, '');
+            const tel = (c.phone||'').replace(/[^\d+]/g,'');
             const actions = [];
             if (tel) {
                 actions.push('<a class="call" href="tel:' + escapeHtml(tel) + '">📞 Позвонить</a>');
@@ -1020,10 +1337,9 @@ function render() {
             }
             if (c.email) actions.push('<a href="mailto:' + escapeHtml(c.email) + '">✉️ Email</a>');
             if (c.telegram) actions.push('<a href="https://t.me/' + escapeHtml(c.telegram) + '" target="_blank" rel="noopener">✈️ Telegram</a>');
-
             return '<div class="item" style="flex-direction:column;align-items:stretch;">' +
                 '<div style="display:flex;align-items:center;gap:10px;">' +
-                    '<div style="width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;">' + escapeHtml((c.name || '?').charAt(0).toUpperCase()) + '</div>' +
+                    '<div style="width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;">' + escapeHtml((c.name||'?').charAt(0).toUpperCase()) + '</div>' +
                     '<div class="item-main">' +
                         '<div class="item-title" style="font-weight:600;">' + escapeHtml(c.name) + '</div>' +
                         (c.phone ? '<div class="item-sub">📞 ' + escapeHtml(c.phone) + '</div>' : '') +
@@ -1038,28 +1354,68 @@ function render() {
     }
 
     // Finance
-    const finBal = document.getElementById('finBalance');
-    if (finBal) finBal.textContent = balance.toFixed(2);
+    const fb = document.getElementById('finBalance'); if (fb) fb.textContent = balance.toFixed(2);
     const fl = document.getElementById('financeList');
+    const cats = { work:'💻 Работа', home:'🏠 Дом', food:'🍔 Еда', transport:'🚗 Транспорт',
+                   fun:'🎮 Развлечения', health:'🏥 Здоровье', subs:'📱 Подписки',
+                   edu:'🎓 Образование', gifts:'🎁 Подарки', travel:'✈️ Путешествия',
+                   bet:'🎯 Ставки', other:'📦 Другое' };
     if (fl) {
         if (!DB.finance.length) fl.innerHTML = '<div class="empty">Операций нет.</div>';
         else fl.innerHTML = DB.finance.map(f =>
             '<div class="item">' +
-                '<div style="font-weight:700;color:' + (f.type === 'income' ? 'var(--success)' : 'var(--danger)') + ';min-width:80px;">' +
-                    (f.type === 'income' ? '+' : '−') + f.amount.toFixed(2) +
-                '</div>' +
-                '<div class="item-main"><div class="item-title">' + escapeHtml(f.note || '—') + '</div>' +
-                '<div class="item-sub">' + fmtDate(f.createdAt) + '</div></div>' +
+                '<div style="font-weight:700;color:' + (f.type==='income'?'var(--success)':'var(--danger)') + ';min-width:90px;">' +
+                    (f.type==='income'?'+':'−') + f.amount.toFixed(2) + '</div>' +
+                '<div class="item-main"><div class="item-title">' + escapeHtml(f.note || cats[f.category] || '—') + '</div>' +
+                '<div class="item-sub">' + (cats[f.category]||'') + ' · ' + fmtDate(f.createdAt) + '</div></div>' +
                 '<button class="btn btn-sm btn-danger" onclick="delFinance(\'' + f.id + '\')">✕</button>' +
             '</div>'
         ).join('');
     }
 
-    // Bookmarks
-    const bl = document.getElementById('bookmarksList');
+    // Bookmaker stats
+    const bmTotal = DB.bets.length;
+    const bmWon = DB.bets.filter(b => b.status === 'won').length;
+    const bmLost = DB.bets.filter(b => b.status === 'lost').length;
+    const bmPL = DB.bets.reduce((s, b) => {
+        if (b.status === 'won') return s + b.amount * (b.odds - 1);
+        if (b.status === 'lost') return s - b.amount;
+        return s;
+    }, 0);
+    const elTotal = document.getElementById('bmTotal'); if (elTotal) elTotal.textContent = bmTotal;
+    const elWon = document.getElementById('bmWon'); if (elWon) elWon.textContent = bmWon;
+    const elLost = document.getElementById('bmLost'); if (elLost) elLost.textContent = bmLost;
+    const elPL = document.getElementById('bmPL');
+    if (elPL) { elPL.textContent = (bmPL >= 0 ? '+' : '') + bmPL.toFixed(2); elPL.style.color = bmPL >= 0 ? 'var(--success)' : 'var(--danger)'; }
+    const bl = document.getElementById('betsList');
     if (bl) {
-        if (!DB.bookmarks.length) bl.innerHTML = '<div class="empty">Закладок нет.</div>';
-        else bl.innerHTML = DB.bookmarks.map(b =>
+        if (!DB.bets.length) bl.innerHTML = '<div class="empty">Ставок нет.</div>';
+        else bl.innerHTML = DB.bets.map(b => {
+            const statusIcons = { pending:'⏳', won:'✅', lost:'❌', void:'↩️' };
+            return '<div class="item" style="flex-direction:column;align-items:stretch;">' +
+                '<div style="display:flex;align-items:center;gap:10px;">' +
+                    '<div style="font-size:1.4rem;">' + statusIcons[b.status] + '</div>' +
+                    '<div class="item-main">' +
+                        '<div class="item-title" style="font-weight:600;">' + escapeHtml(b.event) + '</div>' +
+                        '<div class="item-sub">' + escapeHtml(b.bet||'') + ' · ' + b.amount.toFixed(2) + ' × ' + b.odds.toFixed(2) + '</div>' +
+                    '</div>' +
+                    '<button class="btn btn-sm btn-danger" onclick="delBet(\'' + b.id + '\')">✕</button>' +
+                '</div>' +
+                '<div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap;">' +
+                    '<button class="btn btn-sm" onclick="setBetStatus(\'' + b.id + '\',\'pending\')">⏳</button>' +
+                    '<button class="btn btn-sm btn-success" onclick="setBetStatus(\'' + b.id + '\',\'won\')">✅ Выиграл</button>' +
+                    '<button class="btn btn-sm btn-danger" onclick="setBetStatus(\'' + b.id + '\',\'lost\')">❌ Проиграл</button>' +
+                    '<button class="btn btn-sm" onclick="setBetStatus(\'' + b.id + '\',\'void\')">↩️ Возврат</button>' +
+                '</div>' +
+            '</div>';
+        }).join('');
+    }
+
+    // Bookmarks
+    const bkl = document.getElementById('bookmarksList');
+    if (bkl) {
+        if (!DB.bookmarks.length) bkl.innerHTML = '<div class="empty">Закладок нет.</div>';
+        else bkl.innerHTML = DB.bookmarks.map(b =>
             '<div class="item">' +
                 '<div class="item-main"><div class="item-title">' + escapeHtml(b.title) + '</div>' +
                 '<div class="item-sub"><a href="' + escapeHtml(b.url) + '" target="_blank" rel="noopener" style="color:var(--accent);">' + escapeHtml(b.url) + '</a></div></div>' +
@@ -1067,19 +1423,24 @@ function render() {
             '</div>'
         ).join('');
     }
+
+    // Calendar
+    if (document.getElementById('view-calendar') && document.getElementById('view-calendar').classList.contains('active')) {
+        renderCalendar();
+    }
 }
 
-/* ========== INIT ========== */
+/* ===== INIT ===== */
 document.addEventListener('DOMContentLoaded', () => {
-    applyTheme();
     buildCalc();
     const cd = document.getElementById('calDate');
     if (cd) cd.value = new Date().toISOString().slice(0, 10);
-    render();
     tickAll();
     setInterval(tickAll, 1000);
-    setTimeout(requestNotifPermission, 2000);
+    setTimeout(requestNotifPermission, 3000);
 });
+
+console.log('✅ DOSS OS загружен');
 </script>
 </body>
 </html>
